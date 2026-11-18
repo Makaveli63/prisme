@@ -90,6 +90,21 @@ svg { width: 1.5rem; height: 1.5rem; flex: none; }
 @keyframes drift { to { transform: translate(6vw, 5vh) scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .blobs i { animation: none; } }
 
+/* Mode léger (appareils peu puissants, ex. Echo Show sous LineageOS) : fond fixe, flou réduit, pas de réfraction. */
+:root.lite { --g-blur: 6px; }
+:root.lite .blobs i { animation: none; }
+:root.lite .glass, :root.lite dialog { --lg-f: blur(0px) !important; }
+:root.lite dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Vieilles WebView (avant Chromium 111) : sans color-mix() ni atan2(), on revient à des couleurs fixes. */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  :root { --g-fill: rgba(255, 255, 255, .24); --g-fill-hi: rgba(255, 255, 255, .38); --g-blur: 10px; }
+  :root.dark-fallback { --g-fill: rgba(60, 66, 90, .32); --g-fill-hi: rgba(80, 86, 110, .4); }
+  .glass::after, dialog::after, .toast::after { background: linear-gradient(135deg, var(--g-rim), transparent 32%, transparent 62%, var(--g-rim)); }
+  dialog, .toast { background: var(--glass-strong); }
+  .scene.active, .btn.primary { background: var(--tint); }
+}
+
 /* Matière Liquid Glass
    1. Verre : flou léger + saturation. Dans Chromium (Chrome, WebView Android), --lg-f ajoute une réfraction
       des bords calculée pour chaque forme (voir LiquidGlass dans le script).
@@ -384,6 +399,7 @@ dialog .row { justify-content: space-between; }
   <div class="legend"><span>Transparent</span><span>Givré</span></div>
   <div class="switch-row"><span id="look-tinted-label">Verre teinté</span><button class="switch" id="look-tinted" role="switch" aria-labelledby="look-tinted-label"></button></div>
   <div class="swatches" id="look-tint" role="group" aria-label="Couleur d'accent"></div>
+  <div class="switch-row"><span id="look-lite-label">Mode léger <small style="color:var(--muted);font-weight:500">(appareil peu puissant)</small></span><button class="switch" id="look-lite" role="switch" aria-labelledby="look-lite-label"></button></div>
   <div class="row" style="justify-content:flex-end"><button class="btn primary" id="look-close">Terminé</button></div>
 </dialog>
 
@@ -797,13 +813,17 @@ window.addEventListener("prisme-home", () => { closeDialogs(); wake(); $("drawer
 window.addEventListener("prisme-resume", () => { refreshInstalled(); renderDock(); if ($("drawer").open) renderDrawer(); wake(); });
 /* ---------- Apparence (iOS 27 : intensité du verre et mode teinté) ---------- */
 const TINTS = [["Bleu", "#2f7bf5"], ["Indigo", "#5e5ce6"], ["Rose", "#ff375f"], ["Orange", "#ff9f0a"], ["Vert", "#30d158"], ["Graphite", "#8e8e93"]];
-let look = { glass: 35, tinted: false, tint: "#2f7bf5" };
+const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
+let look = { glass: 35, tinted: false, tint: "#2f7bf5", lite: !!WEAK };
 try { Object.assign(look, JSON.parse(localStorage.getItem("prisme-look")) || {}); } catch (e) {}
 function applyLook() {
   const root = document.documentElement, v = Math.max(0, Math.min(100, +look.glass || 0)) / 100;
   root.style.setProperty("--g-v", v.toFixed(2));
   root.style.setProperty("--tint", look.tint);
   root.classList.toggle("tinted", !!look.tinted);
+  root.classList.toggle("lite", !!look.lite);
+  root.classList.toggle("dark-fallback", theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches));
+  $("look-lite").setAttribute("aria-checked", String(!!look.lite));
   LiquidGlass.setGain(1.35 - v * .75);
   const r = $("look-glass"); r.value = look.glass; r.style.setProperty("--p", `${look.glass}%`);
   $("look-tinted").setAttribute("aria-checked", String(!!look.tinted));
@@ -820,6 +840,7 @@ $("look-theme").addEventListener("click", (e) => {
 });
 let lookSave = 0;
 $("look-glass").addEventListener("input", (e) => { look.glass = +e.target.value; applyLook(); clearTimeout(lookSave); lookSave = setTimeout(saveLook, 300); });
+$("look-lite").addEventListener("click", () => { look.lite = !look.lite; applyLook(); saveLook(); });
 $("look-tinted").addEventListener("click", () => { look.tinted = !look.tinted; applyLook(); saveLook(); });
 $("look-tint").addEventListener("click", (e) => { const b = e.target.closest("[data-c]"); if (!b) return; look.tint = b.dataset.c; applyLook(); saveLook(); });
 $("look-close").addEventListener("click", () => $("look").close());
@@ -896,7 +917,8 @@ $("amb-style").addEventListener("click", () => {
 const LiquidGlass = (() => {
   const ua = navigator.userAgent;
   const reduce = matchMedia("(prefers-reduced-transparency: reduce)").matches;
-  const ok = /Chrome\/|Chromium\//.test(ua) && !/Firefox\//.test(ua) && !reduce && CSS.supports("backdrop-filter", "url(#x)");
+  const chromeMajor = +((ua.match(/Chrome\/(\d+)/) || [])[1] || 0);
+  const ok = chromeMajor >= 111 && !/Firefox\//.test(ua) && !reduce && CSS.supports("backdrop-filter", "url(#x)");
   const NS = "http://www.w3.org/2000/svg";
   const made = new Map(), tracked = new Set();
   let defs = null, gain = 1;
@@ -944,6 +966,7 @@ const LiquidGlass = (() => {
     const url = `url(#${id})`; made.set(key, url); return url;
   }
   function apply(el) {
+    if (document.documentElement.classList.contains("lite")) return;   // mode léger : pas de calcul de réfraction
     const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
     if (!w || !h || w * h > 1.2e6) return;
     const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);

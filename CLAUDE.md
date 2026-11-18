@@ -31,6 +31,8 @@ Liquid Glass façon iOS 26/27. Fond : dégradé `--wall` + blobs flous animés. 
 
 - Réfraction : objet `LiquidGlass` dans le script. Pour chaque taille de verre il dessine une carte de déplacement (canvas, forme arrondie) et l'applique par un filtre SVG dans `backdrop-filter` (`--lg-f`). Chromium seulement (Chrome, WebView Android) ; ailleurs le verre reste flou. Désactivée si `prefers-reduced-transparency`.
 - Bouton Apparence (`#look`, réglages dans localStorage `prisme-look`) : thème, intensité du verre de transparent à givré (`--g-v`, qui règle aussi la force de la réfraction), verre teinté (classe `tinted` sur `<html>`) et couleur d'accent (`--tint`).
+- Mode léger (`lite` sur `<html>`, interrupteur dans Apparence, activé d'office si `deviceMemory` ≤ 2 Go ou ≤ 2 cœurs) : fond fixe, flou réduit, pas de réfraction. Pensé pour l'Echo Show 8 de 1re génération sous LineageOS 18.1.
+- Vieilles WebView (avant Chromium 111, sans `color-mix()` ni `atan2()`) : bloc `@supports not` avec des couleurs fixes ; la réfraction exige Chromium 111.
 - Tuile allumée : verre blanc dense, texte sombre. Tuile éteinte : verre clair.
 
 ## État actuel
