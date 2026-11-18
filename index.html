@@ -96,6 +96,9 @@ svg { flex: none; }
 .chip { white-space: nowrap; padding: .3em .8em; border-radius: 99px; background: rgba(0, 0, 0, .35); color: #fff; text-shadow: none; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .chip.now { background: #ff9f0a; color: #1a0f00; animation: pulse 2s ease-in-out infinite; }
 .chip.bday { background: #ff375f; }
+/* Fête d'un prénom de la famille : pastille vive, bien visible de loin. */
+.fete-hit { display: inline-block; margin-top: 1.2vh; padding: .25em .9em; border-radius: 99px; font-size: min(5.4vh, 4vw); font-weight: 800; color: #2a0a33; text-shadow: none;
+  background: linear-gradient(90deg, #ffd60a, #ff9f0a 45%, #ff375f); box-shadow: 0 .6vh 2.4vh rgba(255, 120, 40, .45); animation: pulse 2.4s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.04); } }
 .banner { margin-bottom: 1.6vh; font-size: min(6.5vh, 4.8vw); font-weight: 750; display: inline-block; padding: .25em .8em; border-radius: 99px; background: #ff9f0a; color: #1a0f00; text-shadow: none; }
 .banner.soon { background: rgba(0, 0, 0, .45); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
@@ -204,7 +207,7 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
     <div class="row"><input type="text" id="city" placeholder="Ex. Clermont-Ferrand" autocomplete="off"><button class="btn primary" id="city-ok">Valider</button></div>
     <p class="hint" id="city-state"></p></div>
   <div class="switch-row"><span id="fc-l">Prévisions <small>(pluie dans les heures à venir et 3 jours)</small></span><button class="switch" id="fcsw" role="switch" aria-labelledby="fc-l"></button></div>
-  <div class="switch-row"><span id="fete-l">Fête du jour</span><button class="switch" id="fetesw" role="switch" aria-labelledby="fete-l"></button></div>
+  <div class="switch-row"><span id="fete-l">Fête du jour <small>(toujours affichée en couleur si c'est la fête d'un prénom des anniversaires)</small></span><button class="switch" id="fetesw" role="switch" aria-labelledby="fete-l"></button></div>
 
   <h3>Photos</h3>
   <div class="field"><span class="lbl">Changer de photo toutes les</span>
@@ -299,6 +302,11 @@ async function saveFam() {
 }
 const FETES = [["!Jour de l'An", "Basile", "Geneviève", "Odilon", "Édouard", "Mélaine", "Raymond", "Lucien", "Alix", "Guillaume", "Paulin", "Tatiana", "Yvette", "Nina", "Rémi", "Marcel", "Roseline", "Prisca", "Marius", "Sébastien", "Agnès", "Vincent", "Barnard", "François de Sales", "!Conversion de saint Paul", "Paule", "Angèle", "Thomas d'Aquin", "Gildas", "Martine", "Marcelle"], ["Ella", "!Chandeleur", "Blaise", "Véronique", "Agathe", "Gaston", "Eugénie", "Jacqueline", "Apolline", "Arnaud", "!Notre-Dame de Lourdes", "Félix", "Béatrice", "Valentin", "Claude", "Julienne", "Alexis", "Bernadette", "Gabin", "Aimée", "Damien", "Isabelle", "Lazare", "Modeste", "Roméo", "Nestor", "Honorine", "Romain", "Auguste"], ["Aubin", "Charles le Bon", "Guénolé", "Casimir", "Olive", "Colette", "Félicité", "Jean de Dieu", "Françoise", "Vivien", "Rosine", "Justine", "Rodrigue", "Mathilde", "Louise", "Bénédicte", "Patrice", "Cyrille", "Joseph", "Herbert", "Clémence", "Léa", "Victorien", "Catherine de Suède", "!Annonciation", "Larissa", "Habib", "Gontran", "Gwladys", "Amédée", "Benjamin"], ["Hugues", "Sandrine", "Richard", "Isidore", "Irène", "Marcellin", "Jean-Baptiste de la Salle", "Julie", "Gautier", "Fulbert", "Stanislas", "Jules", "Ida", "Maxime", "Paterne", "Benoît-Joseph", "Anicet", "Parfait", "Emma", "Odette", "Anselme", "Alexandre", "Georges", "Fidèle", "Marc", "Alida", "Zita", "Valérie", "Catherine de Sienne", "Robert"], ["!Fête du Travail", "Boris", "Philippe et Jacques", "Sylvain", "Judith", "Prudence", "Gisèle", "!Victoire 1945", "Pacôme", "Solange", "Estelle", "Achille", "Rolande", "Matthias", "Denise", "Honoré", "Pascal", "Éric", "Yves", "Bernardin", "Constantin", "Émile", "Didier", "Donatien", "Sophie", "Bérenger", "Augustin de Cantorbéry", "Germain", "Aymar", "Ferdinand", "!Visitation"], ["Justin", "Blandine", "Kévin", "Clotilde", "Igor", "Norbert", "Gilbert", "Médard", "Diane", "Landry", "Barnabé", "Guy", "Antoine de Padoue", "Élisée", "Germaine", "Jean-François Régis", "Hervé", "Léonce", "Romuald", "Silvère", "Rodolphe", "Alban", "Audrey", "Jean-Baptiste", "Prosper", "Anthelme", "Fernand", "Irénée", "Pierre et Paul", "Martial"], ["Thierry", "Martinien", "Thomas", "Florent", "Antoine", "Mariette", "Raoul", "Thibaut", "Amandine", "Ulrich", "Benoît", "Olivier", "Henri et Joël", "!Fête nationale", "Donald", "!Notre-Dame du Mont-Carmel", "Charlotte", "Frédéric", "Arsène", "Marina", "Victor", "Marie-Madeleine", "Brigitte", "Christine", "Jacques", "Anne et Joachim", "Nathalie", "Samson", "Marthe", "Juliette", "Ignace de Loyola"], ["Alphonse", "Julien Eymard", "Lydie", "Jean-Marie Vianney", "Abel", "!Transfiguration", "Gaétan", "Dominique", "Amour", "Laurent", "Claire", "Clarisse", "Hippolyte", "Evrard", "!Assomption", "Armel", "Hyacinthe", "Hélène", "Jean Eudes", "Bernard", "Christophe", "Fabrice", "Rose de Lima", "Barthélemy", "Louis", "Natacha", "Monique", "Augustin", "Sabine", "Fiacre", "Aristide"], ["Gilles", "Ingrid", "Grégoire", "Rosalie", "Raïssa", "Bertrand", "Reine", "Adrien", "Alain", "Inès", "Adelphe", "Apollinaire", "Aimé", "!La Croix glorieuse", "Roland", "Édith", "Renaud", "Nadège", "Émilie", "Davy", "Matthieu", "Maurice", "Constant", "Thècle", "Hermann", "Côme et Damien", "Vincent de Paul", "Venceslas", "Michel, Gabriel et Raphaël", "Jérôme"], ["Thérèse de l'Enfant-Jésus", "Léger", "Gérard", "François d'Assise", "Fleur", "Bruno", "Serge", "Pélagie", "Denis", "Ghislain", "Firmin", "Wilfried", "Géraud", "Juste", "Thérèse d'Avila", "Edwige", "Baudouin", "Luc", "René", "Adeline", "Céline", "Élodie", "Jean de Capistran", "Florentin", "Crépin", "Dimitri", "Émeline", "Simon et Jude", "Narcisse", "Bienvenue", "Quentin"], ["!Toussaint", "!Jour des défunts", "Hubert", "Charles", "Sylvie", "Bertille", "Carine", "Geoffroy", "Théodore", "Léon", "!Armistice 1918", "Christian", "Brice", "Sidoine", "Albert", "Marguerite", "Élisabeth", "Aude", "Tanguy", "Edmond", "!Présentation de Marie", "Cécile", "Clément", "Flora", "Catherine", "Delphine", "Séverin", "Jacques de la Marche", "Saturnin", "André"], ["Florence", "Viviane", "François-Xavier", "Barbara", "Gérald", "Nicolas", "Ambroise", "!Immaculée Conception", "Pierre Fourier", "Romaric", "Daniel", "Jeanne-Françoise de Chantal", "Lucie", "Odile", "Ninon", "Alice", "Gaël", "Gatien", "Urbain", "Théophile", "Pierre Canisius", "Françoise-Xavière", "Armand", "Adèle", "!Noël", "Étienne", "Jean", "!Saints Innocents", "David", "Roger", "Sylvestre"]];
 const fete = (d) => FETES[d.getMonth()][d.getDate() - 1];
+/* Prénoms fêtés ce jour-là : « Pierre et Paul » → [pierre, paul] ; « Thomas d'Aquin » → [thomas]. Sans accents ni majuscules. */
+const norm = (t) => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const feteNames = (f) => f.startsWith("!") ? [] : f.split(/,| et /).map((x) => norm(x.split(/ de | d'| du /)[0]));
+/* Personnes de la liste d'anniversaires dont c'est la fête (premier prénom). */
+const fetedToday = (d) => { const n = feteNames(fete(d)); return (fam.birthdays || []).filter((b) => n.includes(norm(String(b.x).split(/\s+/)[0]))).map((b) => { const f = String(b.x).split(/\s+/)[0]; return f.charAt(0).toUpperCase() + f.slice(1); }); };
 
 /* ---------- Atténuation selon la lumière ----------
    Capteur de lumière (AmbientLightSensor) s'il est accessible, sinon le soleil de la ville (lever / coucher Open-Meteo,
@@ -633,9 +641,14 @@ function tick() {
   lastMin = m;
   const d = fmtDate.format(now);
   $("date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
-  const f = fete(now);
-  $("fete").textContent = f.startsWith("!") ? f.slice(1) : `On fête les ${f}`;
-  $("fete").hidden = !cfg.fete;
+  const f = fete(now), feted = fetedToday(now);
+  if (feted.length) {
+    const who = feted.length === 1 ? feted[0] : feted.slice(0, -1).join(", ") + " et " + feted[feted.length - 1];
+    $("fete").className = "fete-hit"; $("fete").textContent = `🎉 Bonne fête ${who} !`;
+  } else {
+    $("fete").className = "line small"; $("fete").textContent = f.startsWith("!") ? f.slice(1) : `On fête les ${f}`;
+  }
+  $("fete").hidden = !cfg.fete && !feted.length;
   const up = upcoming(now);
   $("chips").innerHTML = up.map((u) => `<span class="chip ${u.cls}">${u.html}</span>`).join("");
   $("chips").hidden = !up.length;
