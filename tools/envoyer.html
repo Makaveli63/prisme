@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Photos du cadre</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cadre photos">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<style>
+/* Page d'envoi de photos vers le cadre (servie par tools/serveur.py), même matière verre que Prisme Home. */
+:root { --bg: #eef1f7; --text: #0d1220; --muted: #6b7286; --tint: #2f7bf5; --glass: rgba(255, 255, 255, .42); --rim: rgba(255, 255, 255, .9);
+  --wall: radial-gradient(circle at 15% 10%, #8fb6ff, transparent 55%), radial-gradient(circle at 90% 90%, #ffb0d3, transparent 55%), linear-gradient(160deg, #dbe6ff, #f3e6ff);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0b0d13; --text: #f1f3f8; --muted: #8c93a5; --tint: #4b93ff; --glass: rgba(255, 255, 255, .08); --rim: rgba(255, 255, 255, .35);
+  --wall: radial-gradient(circle at 15% 10%, #2350d8, transparent 55%), radial-gradient(circle at 90% 90%, #a12a7f, transparent 55%), linear-gradient(160deg, #070a18, #160a18); color-scheme: dark; } }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; min-height: 100vh; background: var(--wall) fixed, var(--bg); color: var(--text); font: 17px/1.4 var(--font); -webkit-font-smoothing: antialiased;
+  padding: max(1.2rem, env(safe-area-inset-top)) 16px max(1.5rem, env(safe-area-inset-bottom)); }
+main { max-width: 40rem; margin: 0 auto; display: grid; gap: 1rem; }
+h1 { margin: .4rem 0 0; font-size: 2rem; letter-spacing: -.02em; }
+p { margin: 0; color: var(--muted); }
+.glass { background: var(--glass); -webkit-backdrop-filter: blur(20px) saturate(190%); backdrop-filter: blur(20px) saturate(190%);
+  box-shadow: 0 10px 30px rgba(30, 40, 90, .14), inset 0 1px 1px var(--rim), inset 0 0 0 .5px var(--rim); border-radius: 1.6rem; }
+.pick { display: grid; place-items: center; gap: .3rem; padding: 1.6rem 1rem; text-align: center; cursor: pointer; font-weight: 650; font-size: 1.15rem; }
+.pick span { font-weight: 500; font-size: .95rem; color: var(--muted); }
+.pick svg { width: 2.4rem; height: 2.4rem; color: var(--tint); }
+.bar { height: .5rem; border-radius: 9px; background: rgba(120, 130, 160, .25); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--tint); transition: width .3s; }
+#state { min-height: 1.4em; font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .5rem; }
+.ph { position: relative; aspect-ratio: 1; border-radius: 1rem; overflow: hidden; background: rgba(120, 130, 160, .2); }
+.ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph button { position: absolute; top: .35rem; right: .35rem; width: 2rem; height: 2rem; border-radius: 50%; border: 0; font-size: 1.1rem; color: #fff;
+  background: rgba(0, 0, 0, .45); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+h2 { margin: .6rem 0 0; font-size: 1.1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Photos du cadre</h1>
+  <p>Choisis des photos : elles s'afficheront sur le cadre d'ici deux minutes. Elles restent sur le serveur de la maison.</p>
+  <label class="pick glass" for="file">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4zM12 10v6M9 13h6"/></svg>
+    Ajouter des photos
+    <span>Photothèque ou appareil photo</span>
+  </label>
+  <input type="file" id="file" accept="image/*" multiple hidden>
+  <div class="bar" id="bar" hidden><i id="bar-i"></i></div>
+  <div id="state" role="status" aria-live="polite"></div>
+  <h2 id="count">Sur le cadre</h2>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let code = ""; try { code = localStorage.getItem("prisme-code") || ""; } catch (e) {}
+
+/* Les photos d'iPhone (HEIC, 12 Mpx) sont décodées par Safari puis réduites en JPEG de 2000 px : légères pour le cadre. */
+async function shrink(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise((res) => c.toBlob(res, "image/jpeg", .86));
+  } catch (e) { return null; } finally { URL.revokeObjectURL(url); }
+}
+async function post(path, body) {
+  for (let essai = 0; essai < 2; essai++) {
+    const r = await fetch(path, { method: "POST", body, headers: code ? { "X-Prisme-Code": code } : {} });
+    if (r.status !== 403) return r;
+    code = prompt("Code du cadre :") || ""; try { localStorage.setItem("prisme-code", code); } catch (e) {}
+    if (!code) return r;
+  }
+  return null;
+}
+$("file").addEventListener("change", async (e) => {
+  const files = [...e.target.files]; e.target.value = ""; if (!files.length) return;
+  $("bar").hidden = false; let ok = 0;
+  for (let i = 0; i < files.length; i++) {
+    $("state").textContent = `Envoi ${i + 1} / ${files.length}…`;
+    const blob = await shrink(files[i]);
+    if (blob) {
+      const fd = new FormData(); fd.append("photo", blob, (files[i].name || "photo").replace(/\.\w+$/, "") + ".jpg");
+      const r = await post("/envoyer", fd).catch(() => null);
+      if (r && r.ok) ok++;
+    }
+    $("bar-i").style.width = `${(i + 1) / files.length * 100}%`;
+  }
+  $("state").textContent = ok === files.length ? `${ok} photo${ok > 1 ? "s" : ""} envoyée${ok > 1 ? "s" : ""} ✓` : `${ok} / ${files.length} envoyées (les autres n'ont pas pu être lues)`;
+  setTimeout(() => { $("bar").hidden = true; $("bar-i").style.width = "0"; }, 1500);
+  load();
+});
+async function load() {
+  const list = await fetch("/photos/photos.json", { cache: "no-store" }).then((r) => r.json()).catch(() => []);
+  $("count").textContent = list.length ? `Sur le cadre (${list.length})` : "Aucune photo pour l'instant";
+  $("grid").innerHTML = list.map((n) => `<div class="ph"><img loading="lazy" src="/photos/${encodeURIComponent(n)}" alt=""><button data-n="${n.replace(/"/g, "&quot;")}" aria-label="Supprimer">×</button></div>`).join("");
+}
+$("grid").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-n]"); if (!b || !confirm("Retirer cette photo du cadre ?")) return;
+  await post(`/supprimer?nom=${encodeURIComponent(b.dataset.n)}`, "").catch(() => null); load();
+});
+load();
+</script>
+</body>
+</html>

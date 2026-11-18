@@ -1,0 +1,16 @@
+# Démarre le serveur du cadre photo au lancement du serveur Ubuntu.
+# Installation (remplacer CHEMIN par le dossier du dépôt et UTILISATEUR par ton nom d'utilisateur) :
+#   sudo cp tools/prisme-cadre.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now prisme-cadre
+[Unit]
+Description=Prisme Home - cadre photo et envoi de photos
+After=network-online.target
+
+[Service]
+User=UTILISATEUR
+WorkingDirectory=CHEMIN
+ExecStart=/usr/bin/python3 CHEMIN/tools/serveur.py --port 8000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
