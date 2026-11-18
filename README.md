@@ -2,11 +2,13 @@
 
 Cadre photo en verre liquide pour un écran posé dans le salon (Echo Show, vieille tablette…) : une très grande horloge lisible de loin, la date et la météo, par-dessus un diaporama de photos. Publié sur https://makaveli63.github.io/prisme/.
 
-- Heure en très grand, en bas à gauche ou au centre ; date ; météo réelle (Open-Meteo, sans clé) de la ville choisie
-- Diaporama en fondu avec léger zoom, une photo toutes les 10 s à 5 min
-- Capsule en verre liquide derrière l'heure (réglable de transparent à givré, ou désactivée)
-- Assombri la nuit (22 h – 7 h), légère dérive pour éviter le marquage de l'écran, mode léger pour les appareils peu puissants
-- Toucher l'écran fait apparaître « Ajouter des photos » et « Réglages »
+- Horloge très lisible de loin : 5 styles (épais, fin, arrondi, aiguilles, en mots : « Il est neuf heures et quart du soir »), en bas à gauche ou au centre, secondes au choix, chiffres blancs ou sombres selon la photo
+- Date, fête du jour, météo réelle (Open-Meteo, sans clé) et prévisions (« Pluie vers 17 h », 3 jours)
+- Famille : rappels à heure fixe (« 🎒 École dans 12 min »), comptes à rebours (« 🎄 Noël dans 37 jours »), anniversaires avec l'âge, réglables depuis l'iPhone via le serveur
+- Enfants : lumière dodo (heure en bleu = on dort, en jaune = on peut se lever)
+- Diaporama en fondu avec léger zoom, date de chaque photo, albums de saison (Noël, Halloween, saisons)
+- Atténuation selon la lumière, nuit noire (juste l'heure en rouge sombre), dérive anti-marquage, mode léger
+- Toucher l'écran : plein écran, « Ajouter des photos », « Réglages »
 
 ## Photos
 
@@ -17,7 +19,7 @@ Cadre photo en verre liquide pour un écran posé dans le salon (Echo Show, viei
   curl -fsSL https://raw.githubusercontent.com/Makaveli63/prisme/main/tools/installer.sh | bash
   ```
 
-  Elle affiche deux adresses : celle à ouvrir sur l'Echo Show (navigateur Silk), et celle à ouvrir sur l'iPhone (Safari) pour envoyer des photos. L'adresse d'envoi est aussi rappelée dans les Réglages de Home+. Les photos sont réduites en JPEG avant l'envoi et apparaissent en 2 minutes.
+  Elle affiche deux adresses : celle à ouvrir sur l'Echo Show (navigateur Silk), et celle à ouvrir sur l'iPhone (Safari) pour envoyer des photos (avec choix de l'album) et régler rappels, anniversaires et comptes à rebours. L'adresse d'envoi est aussi rappelée dans les Réglages de Home+. Les photos sont réduites en JPEG avant l'envoi et apparaissent en 2 minutes.
 
   Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison. Code facultatif : `PRISME_CODE=1234` dans le service. Les photos restent dans `~/homeplus/photos/` et ne sont jamais envoyées sur GitHub.
 

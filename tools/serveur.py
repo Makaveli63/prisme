@@ -3,7 +3,8 @@
 
 - Sert la page (index.html) et le dossier photos/ à toute la maison.
 - http://<serveur>:8000/envoyer : page pour envoyer des photos depuis un iPhone (ou n'importe quel téléphone),
-  et les supprimer. Le cadre les affiche au prochain rafraîchissement (2 min environ).
+  les ranger dans un album de saison et les supprimer. Le cadre les affiche au prochain rafraîchissement (2 min environ).
+- donnees.json : rappels, comptes à rebours et anniversaires, partagés entre l'écran et l'iPhone (GET / POST).
 
 Lancer depuis la racine du dépôt :  python3 tools/serveur.py            (port 8000)
                                     python3 tools/serveur.py --port 8080
@@ -20,22 +21,31 @@ PHOTOS = os.path.join(RACINE, "photos")
 PAGE_ENVOI = os.path.join(RACINE, "tools", "envoyer.html")
 CODE = os.environ.get("PRISME_CODE", "")
 EXT = (".jpg", ".jpeg", ".png", ".webp", ".gif")
+ALBUMS = ("noel", "halloween", "hiver", "printemps", "ete", "automne")   # sous-dossiers de photos/ (albums de saison)
+DONNEES = os.path.join(RACINE, "photos", "donnees.json")
 MAX_OCTETS = 40 * 1024 * 1024
 
 
 def liste_photos():
-    try:
-        noms = [n for n in os.listdir(PHOTOS) if n.lower().endswith(EXT) and not n.startswith(".")]
-    except FileNotFoundError:
-        return []
+    """Photos de photos/ et de ses albums de saison, chemins relatifs (« noel/xxx.jpg »), les plus récentes d'abord."""
+    noms = []
+    for sous in ("",) + ALBUMS:
+        d = os.path.join(PHOTOS, sous)
+        try:
+            noms += [os.path.join(sous, n) if sous else n for n in os.listdir(d) if n.lower().endswith(EXT) and not n.startswith(".")]
+        except FileNotFoundError:
+            pass
     return sorted(noms, key=lambda n: os.path.getmtime(os.path.join(PHOTOS, n)), reverse=True)
 
 
-def nom_sur(nom):
+def nom_sur(nom, prise=""):
+    """Nom de fichier sûr. Si la date de prise de vue est connue (AAAAMMJJ), il commence par « d » + cette date :
+    le cadre l'affiche (« Juillet 2024 »)."""
     base, ext = os.path.splitext(os.path.basename(nom))
     ext = ext.lower() if ext.lower() in EXT else ".jpg"
     base = re.sub(r"[^A-Za-z0-9_-]+", "-", base).strip("-")[:40] or "photo"
-    return f"{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(2)}-{base}{ext}"
+    debut = f"d{prise}" if re.fullmatch(r"(19|20)\d{6}", prise or "") else time.strftime("%Y%m%d-%H%M%S")
+    return f"{debut}-{secrets.token_hex(2)}-{base}{ext}"
 
 
 class Gestion(SimpleHTTPRequestHandler):
@@ -73,6 +83,16 @@ class Gestion(SimpleHTTPRequestHandler):
         if u.path == "/photos/photos.json":
             self.envoyer_json(200, liste_photos())
             return
+        if u.path == "/donnees.json":
+            try:
+                with open(DONNEES, encoding="utf-8") as f:
+                    self.envoyer_json(200, json.load(f))
+            except (FileNotFoundError, ValueError):
+                self.envoyer_json(200, {})
+            return
+        if u.path == "/photos/donnees.json":
+            self.send_error(404)
+            return
         if u.path.startswith("/.git") or u.path.startswith("/tools") or u.path.startswith("/android"):
             self.send_error(404)
             return
@@ -88,11 +108,31 @@ class Gestion(SimpleHTTPRequestHandler):
         if longueur > MAX_OCTETS:
             self.envoyer_json(413, {"erreur": "Fichier trop gros"})
             return
+        if u.path == "/donnees.json":
+            try:
+                donnees = json.loads(self.rfile.read(longueur).decode("utf-8"))
+                assert isinstance(donnees, dict) and longueur < 200_000
+                propre = {k: donnees.get(k, []) for k in ("reminders", "events", "birthdays")}
+                assert all(isinstance(v, list) for v in propre.values())
+            except Exception:
+                self.envoyer_json(400, {"erreur": "Données invalides"})
+                return
+            os.makedirs(PHOTOS, exist_ok=True)
+            tmp = DONNEES + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(propre, f, ensure_ascii=False, indent=1)
+            os.replace(tmp, DONNEES)
+            self.envoyer_json(200, {"ok": True})
+            return
         if u.path == "/envoyer":
+            album = q.get("album", [""])[0]
+            album = album if album in ALBUMS else ""
+            prises = q.get("prise", [])
             brut = self.rfile.read(longueur)
             entete = f"Content-Type: {self.headers.get('Content-Type', '')}\r\n\r\n".encode()
             msg = email.parser.BytesParser(policy=email.policy.default).parsebytes(entete + brut)
-            os.makedirs(PHOTOS, exist_ok=True)
+            dossier = os.path.join(PHOTOS, album)
+            os.makedirs(dossier, exist_ok=True)
             enregistres = []
             for part in msg.iter_parts():
                 nom = part.get_filename()
@@ -101,15 +141,16 @@ class Gestion(SimpleHTTPRequestHandler):
                     continue
                 if not (donnees[:3] == b"\xff\xd8\xff" or donnees[:8] == b"\x89PNG\r\n\x1a\n" or donnees[:4] == b"RIFF" or donnees[:3] == b"GIF"):
                     continue  # seulement JPEG, PNG, WebP, GIF (la page d'envoi convertit les photos iPhone en JPEG)
-                final = nom_sur(nom)
-                with open(os.path.join(PHOTOS, final), "wb") as f:
+                prise = re.sub(r"\D", "", (part.get_param("prise", header="content-disposition") or (prises[0] if prises else "")))[:8]
+                final = nom_sur(nom, prise)
+                with open(os.path.join(dossier, final), "wb") as f:
                     f.write(donnees)
-                enregistres.append(final)
+                enregistres.append(os.path.join(album, final) if album else final)
             self.envoyer_json(200 if enregistres else 400, {"enregistres": enregistres})
             return
         if u.path == "/supprimer":
             self.rfile.read(longueur)
-            nom = os.path.basename(unquote(q.get("nom", [""])[0]))
+            nom = os.path.normpath(unquote(q.get("nom", [""])[0])).lstrip("/")
             chemin = os.path.join(PHOTOS, nom)
             if nom in liste_photos():
                 os.remove(chemin)
