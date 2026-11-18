@@ -7,7 +7,7 @@ Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Gla
 - Tuiles d'appareils : lumières, thermostat, volets, prises, TV, porte. Touche pour allumer ou éteindre, appui long pour régler
 - Carte imprimante Bambu Lab A1 et carte de lecture
 - Dock d'applications et tiroir « Toutes » (recherche, appui long pour épingler au dock)
-- Thème clair / sombre / auto, plein écran, mode veille avec grande horloge après 2 minutes sans toucher l'écran
+- Thème clair / sombre / auto, plein écran, mode veille après 2 minutes (horloge numérique ou analogique, mode nuit automatique de 22 h à 7 h)
 - Installable sur l'écran d'accueil (plein écran, paysage)
 
 C'est pour l'instant une **maquette** : les appareils, la météo, l'imprimante et la lecture sont des exemples définis en haut du script de `index.html` (`DEVICES`, `SCENES`, `APPS`, `printer`, `media`). Les applications du dock ne s'ouvrent pas depuis une page web : il faut l'application Android.
