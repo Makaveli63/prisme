@@ -1,8 +1,10 @@
-# Prisme Home
+# Home+
 
-Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié par GitHub Pages sur https://makaveli63.github.io/prisme/ après fusion dans `main`.
+Home+ : launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié par GitHub Pages sur https://makaveli63.github.io/prisme/ après fusion dans `main`.
 
-Le dépôt contenait avant un lecteur RSS (Prisme). Il est supprimé de la branche `launcher` mais reste dans l'historique git, avant le commit « Remplace le lecteur RSS par le launcher Prisme Home ».
+Nom de l'application : **Home+** (anciennement Prisme Home). Le dépôt, l'adresse GitHub Pages, le paquet Android `io.github.makaveli63.prisme` et le fichier `prisme-home.apk` gardent l'ancien nom pour ne pas casser les liens ni les mises à jour de l'APK. Ne pas utiliser « HomeView » seul (nom d'un produit Apple).
+
+Le dépôt contenait avant un lecteur RSS (Prisme). Il est supprimé de la branche `launcher` mais reste dans l'historique git, avant le commit « Remplace le lecteur RSS par le launcher Home+ ».
 
 ## Structure
 

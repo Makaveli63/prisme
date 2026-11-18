@@ -44,5 +44,5 @@ jobs:
         run: |
           gh release delete "$TAG" --cleanup-tag --yes || true
           gh release create "$TAG" prisme-home.apk --prerelease --target "$GITHUB_SHA" \
-            --title "Prisme Home (APK, branche ${{ github.ref_name }})" \
-            --notes "APK compilé depuis ${GITHUB_SHA::7}. Sur la tablette : télécharger prisme-home.apk, autoriser l'installation depuis le navigateur, installer, puis appuyer sur Accueil et choisir Prisme Home."
+            --title "Home+ (APK, branche ${{ github.ref_name }})" \
+            --notes "APK compilé depuis ${GITHUB_SHA::7}. Sur la tablette : télécharger prisme-home.apk, autoriser l'installation depuis le navigateur, installer, puis appuyer sur Accueil et choisir Home+."

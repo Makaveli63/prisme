@@ -1,4 +1,4 @@
-# Prisme Home
+# Home+
 
 Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié sur https://makaveli63.github.io/prisme/.
 
@@ -31,9 +31,9 @@ Le dossier `android/` contient un launcher Android : la même page dans une WebV
 
 1. Sur la tablette, ouvrir la page **Releases** du dépôt GitHub, pré-version `apk-main` (ou `apk-launcher`), et télécharger `prisme-home.apk`.
 2. Autoriser l'installation d'applications depuis le navigateur quand Android le demande, puis installer.
-3. Appuyer sur le bouton Accueil et choisir **Prisme Home**, « Toujours ». Sinon : Réglages › Applications › Application d'accueil par défaut (le tiroir « Toutes » propose aussi le raccourci).
+3. Appuyer sur le bouton Accueil et choisir **Home+**, « Toujours ». Sinon : Réglages › Applications › Application d'accueil par défaut (le tiroir « Toutes » propose aussi le raccourci).
 
-Pour revenir au launcher d'origine, changer l'application d'accueil dans les réglages ou désinstaller Prisme Home.
+Pour revenir au launcher d'origine, changer l'application d'accueil dans les réglages ou désinstaller Home+.
 
 Lancer en local : `python3 -m http.server` puis ouvrir http://localhost:8000.
 

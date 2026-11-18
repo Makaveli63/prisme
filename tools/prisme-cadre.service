@@ -3,7 +3,7 @@
 #   sudo cp tools/prisme-cadre.service /etc/systemd/system/
 #   sudo systemctl daemon-reload && sudo systemctl enable --now prisme-cadre
 [Unit]
-Description=Prisme Home - cadre photo et envoi de photos
+Description=Home+ - cadre photo et envoi de photos
 After=network-online.target
 
 [Service]

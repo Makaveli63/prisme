@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serveur maison de Prisme Home, pour le cadre photo (Echo Show, vieille tablette…).
+"""Serveur maison de Home+, pour le cadre photo (Echo Show, vieille tablette…).
 
 - Sert la page (index.html) et le dossier photos/ à toute la maison.
 - http://<serveur>:8000/envoyer : page pour envoyer des photos depuis un iPhone (ou n'importe quel téléphone),
@@ -126,7 +126,7 @@ def main():
     a = ap.parse_args()
     os.makedirs(PHOTOS, exist_ok=True)
     srv = ThreadingHTTPServer(("0.0.0.0", a.port), Gestion)
-    print(f"Prisme Home : cadre sur http://<ce-serveur>:{a.port}/?cadre  ·  envoi de photos sur http://<ce-serveur>:{a.port}/envoyer")
+    print(f"Home+ : cadre sur http://<ce-serveur>:{a.port}/?cadre  ·  envoi de photos sur http://<ce-serveur>:{a.port}/envoyer")
     if CODE:
         print("Code demandé pour envoyer ou supprimer des photos.")
     try:
