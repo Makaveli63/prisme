@@ -3,6 +3,7 @@
 Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié sur https://makaveli63.github.io/prisme/.
 
 - Horloge, salutation, météo et résumé de la maison
+- Cadrans à faire glisser, comme sur Apple HomeView : Maison, Horloge (lisible de loin) et Lecture ; vue simplifiée en grand quand on ne touche plus l'écran
 - Scènes (Bienvenue, Cinéma, Bonne nuit, Départ) et pièces
 - Tuiles d'appareils : lumières, thermostat, volets, prises, TV, porte. Touche pour allumer ou éteindre, appui long pour régler
 - Carte imprimante Bambu Lab A1 et carte de lecture

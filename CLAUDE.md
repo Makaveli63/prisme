@@ -23,7 +23,9 @@ Le dépôt contenait avant un lecteur RSS (Prisme). Il est supprimé de la branc
 - Mode veille après `IDLE_MS` sans toucher l'écran : horloge numérique géante ou analogique en verre (bouton pour changer, choix gardé dans `localStorage`), date, météo et avancement de l'impression, légère dérive anti-marquage, assombrissement chaud de 22 h à 7 h (classe `night`). Fonctions : `ambientTick`, `analogLoop`, `buildAnalog`.
 - Applications : `APPS` est le dock par défaut (`pkg` = paquet Android, `android:settings` = réglages). Le dock modifié est stocké dans localStorage (`prisme-dock`). Bouton « Toutes » : tiroir avec recherche ; appui court lance, appui long épingle ou retire du dock.
 - Pont natif : `window.PrismeAndroid` (absent dans un navigateur, tout reste alors en aperçu) avec `listApps`, `appIcon`, `launchApp`, `openStore`, `openSettings`, `openAppInfo`, `isDefaultLauncher`, `version`. L'activité envoie les événements `prisme-back`, `prisme-home` et `prisme-resume` à la page.
-- Mise en page : grille paysage (colonne principale + colonne latérale + dock) et colonne unique en portrait (`max-aspect-ratio: 1/1`). L'unité de base est `rem`, calée sur la hauteur de l'écran.
+- Cadrans façon Apple HomeView (`#faces`, défilement horizontal aimanté, points `#dots`, dernier cadran gardé dans localStorage `prisme-face`) : Maison (`#face-home`, l'écran domotique), Horloge (`#face-clock`, grande heure, météo, complications `renderComplications`) et Lecture (`#face-play`). Accueil et Retour reviennent au cadran Maison (`goFace(0)`).
+- Vue de loin / de près : après `FAR_MS` sans toucher l'écran, classe `far` sur `<html>` (textes agrandis, détails, dock et boutons masqués) ; le premier toucher revient à la vue de près sans rien déclencher (`nearNow`). HomeView mesure la distance réelle, ici l'inactivité sert d'approximation.
+- Mise en page : cadrans + points + dock ; le cadran Maison est une grille paysage (colonne principale + colonne latérale) et colonne unique en portrait (`max-aspect-ratio: 1/1`). L'unité de base est `rem`, calée sur la hauteur de l'écran.
 
 ## Style
 

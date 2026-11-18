@@ -103,6 +103,7 @@ svg { width: 1.5rem; height: 1.5rem; flex: none; }
   .glass::after, dialog::after, .toast::after { background: linear-gradient(135deg, var(--g-rim), transparent 32%, transparent 62%, var(--g-rim)); }
   dialog, .toast { background: var(--glass-strong); }
   .scene.active, .btn.primary { background: var(--tint); }
+  .fc-time { background: none; color: var(--text); }
 }
 
 /* Matière Liquid Glass
@@ -136,14 +137,72 @@ svg { width: 1.5rem; height: 1.5rem; flex: none; }
 @media (prefers-reduced-motion: reduce) { .glass, .glass.pressing { transition: none; transform: none; } }
 
 /* Mise en page */
-.app { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 22rem; grid-template-rows: minmax(0, 1fr) auto; gap: 1rem 1.5rem;
+.app { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: .7rem;
   padding: max(1.4rem, env(safe-area-inset-top)) max(1.6rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1.6rem, env(safe-area-inset-left)); }
 .main { min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 1.1rem; padding: .6rem 1rem 1.2rem; margin: -.6rem -1rem 0; }
 .main::-webkit-scrollbar, .side::-webkit-scrollbar { display: none; }
 .main > *, .side > * { flex: none; }
 .side { min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 1rem; padding: .9rem 1rem 1.2rem; margin: -.6rem -1rem 0; }
-.dock { grid-column: 1 / -1; justify-self: center; display: flex; gap: 1.1rem; padding: .8rem 1.3rem; border-radius: 2.4rem; --g-blur: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.dock { justify-self: center; display: flex; gap: 1.1rem; padding: .8rem 1.3rem; border-radius: 2.4rem; --g-blur: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .dock::-webkit-scrollbar { display: none; }
+
+/* Cadrans façon HomeView : pages plein écran qu'on fait glisser (Maison, Horloge, Lecture). */
+.faces { min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+  margin: -1rem -1.6rem -1.4rem; padding: 1rem 0 1.4rem; }
+.faces::-webkit-scrollbar { display: none; }
+.face { flex: 0 0 100%; min-width: 0; min-height: 0; scroll-snap-align: start; scroll-snap-stop: always; padding: 0 1.6rem; }
+.face-home { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1rem 1.5rem; }
+.dots { justify-self: center; display: flex; gap: .55rem; padding: .45rem .8rem; border-radius: 99px; --g-blur: 6px; }
+.dots button { width: .55rem; height: .55rem; border-radius: 99px; background: var(--muted); opacity: .45; transition: width .45s var(--spring), opacity .3s, background .3s; }
+.dots button[aria-current="true"] { width: 1.5rem; opacity: 1; background: var(--text); }
+
+/* Cadran Horloge : lisible de loin */
+.face-clock { display: grid; grid-template-rows: 1fr auto; align-items: center; justify-items: center; text-align: center; padding-bottom: .6rem; }
+.fc-main { display: grid; gap: .4rem; justify-items: center; }
+.fc-date { font-size: 1.6rem; font-weight: 600; color: var(--muted); }
+.fc-time { font-size: min(34vh, 24vw); line-height: .92; font-weight: 700; letter-spacing: -.05em; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, var(--text) 30%, color-mix(in srgb, var(--text) 55%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fc-weather { display: inline-flex; align-items: center; gap: .7rem; font-size: 1.5rem; font-weight: 650; padding: .6rem 1.3rem; border-radius: 99px; }
+.fc-weather svg { width: 2rem; height: 2rem; }
+.fc-weather small { font-size: 1.1rem; font-weight: 550; color: var(--muted); }
+.complications { display: grid; grid-template-columns: repeat(3, minmax(0, 16rem)); gap: 1rem; justify-content: center; width: 100%; }
+.cpl { border-radius: 1.8rem; padding: 1rem 1.15rem; display: flex; align-items: center; gap: .9rem; text-align: left; min-width: 0; }
+.cpl .cv { font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.cpl .cl { font-size: .9rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cpl > div { min-width: 0; }
+.cpl .ci { width: 2.8rem; height: 2.8rem; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--track); }
+.cpl .ci.warm { background: rgba(255, 179, 64, .28); color: #c27400; }
+.cpl .ci.green { background: rgba(52, 199, 89, .22); color: #1f9a45; }
+.cpl .ci.blue { background: rgba(47, 123, 245, .18); color: #1f64d6; }
+
+/* Cadran Lecture */
+.face-play { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 26rem); gap: 3rem; align-items: center; justify-content: center; }
+.pl-art { width: min(58vh, 40vw); aspect-ratio: 1; border-radius: 2.4rem; display: grid; place-items: center; color: rgba(255, 255, 255, .9);
+  background: linear-gradient(145deg, #e5a00d, #b0561d 60%, #5a2a1a); box-shadow: 0 30px 70px rgba(90, 40, 10, .35), inset 0 1px 1px rgba(255, 255, 255, .4); }
+.pl-art svg { width: 30%; height: 30%; }
+.pl-info h2 { margin: 0; font-size: 2.1rem; line-height: 1.1; letter-spacing: -.02em; }
+.pl-info p { margin: .4rem 0 0; font-size: 1.2rem; color: var(--muted); font-weight: 600; }
+.pl-info .bar { height: .55rem; margin: 1.6rem 0 .3rem; }
+.pl-times { display: flex; justify-content: space-between; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pl-ctrl { display: flex; justify-content: center; align-items: center; gap: 1.6rem; margin-top: 1.2rem; padding: .8rem 1.4rem; border-radius: 99px; }
+.pl-ctrl button { width: 3.4rem; height: 3.4rem; display: grid; place-items: center; border-radius: 50%; transition: transform .4s var(--spring); }
+.pl-ctrl button svg { width: 1.8rem; height: 1.8rem; }
+.pl-ctrl .play { width: 4.6rem; height: 4.6rem; background: var(--text); color: var(--bg); box-shadow: 0 10px 24px rgba(0, 0, 0, .22); }
+.pl-ctrl .play svg { width: 2.1rem; height: 2.1rem; }
+.pl-ctrl button:active { transform: scale(1.1); }
+
+/* Interface selon la distance (comme HomeView) : sans toucher l'écran pendant FAR_MS, on suppose qu'on le regarde de loin.
+   Textes agrandis, détails masqués ; le premier toucher revient à la vue de près sans rien déclencher. */
+.app, .head, .clock, .tile, .tile .name, .fc-time, .complications, .pl-info h2 { transition: transform .7s var(--spring), font-size .6s, opacity .5s; }
+.hint, .status, .tile .state, .pinfo span, .tools .round, .dock, .dots, .rooms, .scenes, .card .row, .transport, .pl-ctrl, .pl-times { transition: opacity .5s; }
+:root.far .app { pointer-events: none; }
+:root.far .hint, :root.far .status, :root.far .tile .state, :root.far .tools .round, :root.far .dock, :root.far .dots, :root.far .card .row, :root.far .transport, :root.far .pl-ctrl, :root.far .pl-times { opacity: 0; }
+:root.far .scenes, :root.far .rooms { opacity: .35; }
+:root.far .clock { font-size: 6.4rem; }
+:root.far .tile .name { font-size: 1.25rem; }
+:root.far .fc-time { font-size: min(40vh, 27vw); }
+:root.far .complications { transform: translateY(-1rem) scale(1.06); }
+:root.far .pl-info h2 { font-size: 2.6rem; }
 
 /* En-tête */
 .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
@@ -329,9 +388,14 @@ dialog .row { justify-content: space-between; }
 /* Portrait : une seule colonne qui défile */
 @media (max-aspect-ratio: 1/1) {
   body { overflow: auto; }
-  .app { height: auto; min-height: 100%; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: start; }
-  .main, .side { overflow: visible; }
-  .dock { position: sticky; bottom: .8rem; }
+  body { overflow: hidden; }
+  .face-home { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; align-content: start; overflow-y: auto; scrollbar-width: none; padding-bottom: 1rem; }
+  .face-home::-webkit-scrollbar { display: none; }
+  .main, .side { overflow: visible; margin: 0 -1rem; }
+  .complications { grid-template-columns: minmax(0, 1fr); max-width: 24rem; }
+  .face-play { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 1.6rem; text-align: center; align-content: center; }
+  .pl-art { width: min(60vw, 40vh); }
+  .pl-info { width: min(100%, 26rem); }
   .clock { font-size: 3.6rem; }
 }
 </style>
@@ -340,6 +404,8 @@ dialog .row { justify-content: space-between; }
 <div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
 <div class="app">
+ <div class="faces" id="faces">
+ <div class="face face-home" id="face-home" aria-label="Maison" data-name="Maison">
   <section class="main" aria-label="Maison">
     <header class="head">
       <div>
@@ -385,6 +451,34 @@ dialog .row { justify-content: space-between; }
     </div>
   </aside>
 
+ </div>
+
+ <section class="face face-clock" id="face-clock" aria-label="Horloge" data-name="Horloge">
+  <div class="fc-main">
+   <div class="fc-date" id="fc-date"></div>
+   <div class="fc-time" id="fc-time">--:--</div>
+   <div class="fc-weather glass" id="fc-weather"></div>
+  </div>
+  <div class="complications" id="complications"></div>
+ </section>
+
+ <section class="face face-play" id="face-play" aria-label="Lecture" data-name="Lecture">
+  <div class="pl-art" id="pl-art"></div>
+  <div class="pl-info">
+   <h2 id="pl-title"></h2>
+   <p id="pl-sub"></p>
+   <div class="bar"><i id="pl-bar"></i></div>
+   <div class="pl-times"><span id="pl-pos"></span><span id="pl-len"></span></div>
+   <div class="pl-ctrl glass">
+    <button id="pl-prev" aria-label="Précédent"></button>
+    <button class="play" id="pl-play" aria-label="Lecture ou pause"></button>
+    <button id="pl-next" aria-label="Suivant"></button>
+   </div>
+  </div>
+ </section>
+ </div>
+
+  <nav class="dots glass" id="dots" aria-label="Cadrans"></nav>
   <nav class="dock glass" id="dock" aria-label="Applications"></nav>
 </div>
 
@@ -446,9 +540,10 @@ dialog .row { justify-content: space-between; }
 <script>
 /* ---------- Configuration (exemples à remplacer par tes vraies données) ---------- */
 const USER = "Mathieu";
-const WEATHER = { temp: 15, label: "Nuageux" };
+const WEATHER = { temp: 15, label: "Nuageux", hi: 17, lo: 9 };
 const ROOMS = ["Tout", "Salon", "Bureau", "Atelier", "Chambre"];
 const IDLE_MS = 120000;
+const FAR_MS = 30000;       // sans toucher l'écran : vue « de loin » (textes agrandis, détails masqués)
 
 const DEVICES = [
   { id: "l1", name: "Lumière salon",   room: "Salon",   type: "light",  on: true,  level: 70 },
@@ -565,7 +660,7 @@ function renderStatus() {
   const parts = [lights === 0 ? "Aucune lumière allumée" : lights === 1 ? "1 lumière allumée" : `${lights} lumières allumées`, lock.on ? "Porte verrouillée" : "Porte déverrouillée"];
   $("status").textContent = parts.join(" · ");
 }
-function renderAll() { renderScenes(); renderGrid(); renderStatus(); }
+function renderAll() { renderScenes(); renderGrid(); renderStatus(); renderComplications(); }
 
 function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
 function renderPrinter() {
@@ -577,12 +672,31 @@ function renderPrinter() {
   $("p-left").textContent = p.progress >= 100 ? "Terminé" : p.paused ? "En pause" : `Fin dans ${fmtDur((100 - p.progress) / 100 * p.totalMin)}`;
   $("p-temps").textContent = `Buse ${p.nozzle}° · Plateau ${p.bed}°`;
   $("p-toggle").textContent = p.paused ? "Reprendre" : "Pause";
+  renderComplications();
 }
 function renderMedia() {
   $("m-title").textContent = media.title;
   $("m-sub").textContent = media.sub;
   $("m-bar").style.width = media.pos + "%";
   $("m-play").innerHTML = ic(media.playing ? "pause" : "play");
+  $("pl-title").textContent = media.title;
+  $("pl-sub").textContent = media.sub;
+  $("pl-bar").style.width = media.pos + "%";
+  $("pl-play").innerHTML = ic(media.playing ? "pause" : "play");
+  const len = media.lengthMin || 166;
+  $("pl-pos").textContent = fmtDur(len * media.pos / 100); $("pl-len").textContent = `-${fmtDur(len * (1 - media.pos / 100))}`;
+  renderComplications();
+}
+/* Complications du cadran Horloge : impression, lumières, lecture. */
+function renderComplications() {
+  if (!$("complications")) return;
+  const lights = DEVICES.filter((d) => d.type === "light" && d.on).length;
+  const th = DEVICES.find((d) => d.type === "thermo");
+  $("complications").innerHTML = [
+    `<div class="cpl glass"><span class="ci green">${ic("printer")}</span><div><div class="cv">${Math.round(printer.progress)} %</div><div class="cl">${printer.paused ? "En pause" : printer.progress >= 100 ? "Terminé" : "Fin dans " + fmtDur((100 - printer.progress) / 100 * printer.totalMin)}</div></div></div>`,
+    `<div class="cpl glass"><span class="ci warm">${ic("light")}</span><div><div class="cv">${lights}</div><div class="cl">${lights > 1 ? "lumières allumées" : "lumière allumée"}</div></div></div>`,
+    th ? `<div class="cpl glass"><span class="ci blue">${ic("thermo")}</span><div><div class="cv">${String(th.current).replace(".", ",")}°</div><div class="cl">${th.on ? "Chauffe vers " + String(th.target).replace(".", ",") + "°" : "Chauffage arrêté"}</div></div></div>` : ""
+  ].join("");
 }
 
 /* ---------- Horloge, salutation, thème ---------- */
@@ -594,6 +708,7 @@ function tick() {
   const d = raw.charAt(0).toUpperCase() + raw.slice(1);
   $("clock").textContent = t;
   $("date").textContent = d;
+  $("fc-time").textContent = t; $("fc-date").textContent = d;
   ambientTick(now, d);
   const g = h < 5 ? "Bonne nuit" : h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
   $("hello").textContent = `${g}, ${USER}`;
@@ -686,6 +801,37 @@ $("p-toggle").addEventListener("click", () => { printer.paused = !printer.paused
 $("m-play").addEventListener("click", () => { media.playing = !media.playing; renderMedia(); });
 $("m-prev").addEventListener("click", () => { media.pos = 0; renderMedia(); });
 $("m-next").addEventListener("click", () => { media.pos = Math.min(100, media.pos + 10); renderMedia(); });
+$("pl-play").addEventListener("click", () => $("m-play").click());
+$("pl-prev").addEventListener("click", () => $("m-prev").click());
+$("pl-next").addEventListener("click", () => $("m-next").click());
+
+/* ---------- Cadrans (glisser à gauche / à droite) ---------- */
+const faceEls = [...document.querySelectorAll(".face")];
+let faceIdx = 0;
+try { faceIdx = Math.min(faceEls.length - 1, Math.max(0, +localStorage.getItem("prisme-face") || 0)); } catch (e) {}
+$("dots").innerHTML = faceEls.map((f, i) => `<button data-face="${i}" aria-label="${f.dataset.name}"></button>`).join("");
+function showDots() { $("dots").querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-current", String(i === faceIdx))); }
+function goFace(i, smooth = true) {
+  faceIdx = i; showDots();
+  $("faces").scrollTo({ left: faceEls[i].offsetLeft - faceEls[0].offsetLeft, behavior: smooth ? "smooth" : "auto" });
+  try { localStorage.setItem("prisme-face", String(i)); } catch (e) {}
+}
+$("dots").addEventListener("click", (e) => { const b = e.target.closest("[data-face]"); if (b) goFace(+b.dataset.face); });
+let faceScroll = 0;
+$("faces").addEventListener("scroll", () => {
+  cancelAnimationFrame(faceScroll);
+  faceScroll = requestAnimationFrame(() => {
+    const i = Math.round($("faces").scrollLeft / $("faces").clientWidth);
+    if (i !== faceIdx && faceEls[i]) { faceIdx = i; showDots(); try { localStorage.setItem("prisme-face", String(i)); } catch (e) {} }
+  });
+}, { passive: true });
+window.addEventListener("resize", () => goFace(faceIdx, false));
+
+/* ---------- Vue de loin / de près ---------- */
+let farTimer;
+function nearNow() { document.documentElement.classList.remove("far"); clearTimeout(farTimer); farTimer = setTimeout(() => document.documentElement.classList.add("far"), FAR_MS); }
+document.addEventListener("pointerdown", nearNow, { capture: true, passive: true });
+document.addEventListener("keydown", nearNow, { capture: true });
 
 /* ---------- Applications (dock et tiroir) ---------- */
 /* Dans l'APK, window.PrismeAndroid est fourni par MainActivity. Dans un navigateur, tout reste en aperçu. */
@@ -808,8 +954,8 @@ function closeDialogs() {
   for (const d of document.querySelectorAll("dialog[open]")) { d.close(); closed = true; }
   return closed;
 }
-window.addEventListener("prisme-back", () => { if (!closeDialogs()) wake(); });
-window.addEventListener("prisme-home", () => { closeDialogs(); wake(); $("drawer-search").blur(); });
+window.addEventListener("prisme-back", () => { if (!closeDialogs()) { if (faceIdx) goFace(0); wake(); } nearNow(); });
+window.addEventListener("prisme-home", () => { closeDialogs(); wake(); nearNow(); goFace(0); $("drawer-search").blur(); });
 window.addEventListener("prisme-resume", () => { refreshInstalled(); renderDock(); if ($("drawer").open) renderDrawer(); wake(); });
 /* ---------- Apparence (iOS 27 : intensité du verre et mode teinté) ---------- */
 const TINTS = [["Bleu", "#2f7bf5"], ["Indigo", "#5e5ce6"], ["Rose", "#ff375f"], ["Orange", "#ff9f0a"], ["Vert", "#30d158"], ["Graphite", "#8e8e93"]];
@@ -1024,6 +1170,9 @@ const LiquidGlass = (() => {
 
 /* ---------- Démarrage ---------- */
 $("weather").innerHTML = `${ic("cloud")}${WEATHER.temp}° ${WEATHER.label}`;
+$("fc-weather").innerHTML = `${ic("cloud")}${WEATHER.temp}° ${WEATHER.label} <small>↑ ${WEATHER.hi}° ↓ ${WEATHER.lo}°</small>`;
+$("pl-art").innerHTML = ic("film");
+$("pl-prev").innerHTML = ic("prev"); $("pl-next").innerHTML = ic("next");
 $("btn-full").innerHTML = ic("full");
 $("btn-sleep").innerHTML = ic("sleep");
 $("printer-title").innerHTML = `${ic("printer")}Bambu Lab A1`;
@@ -1033,7 +1182,7 @@ $("m-prev").innerHTML = ic("prev"); $("m-next").innerHTML = ic("next");
 if (NATIVE) $("btn-full").style.display = "none";   // l'APK est déjà en plein écran
 refreshInstalled(); renderDock();
 
-buildAnalog(); applyAmbStyle(); applyTheme(); applyLook(); renderRooms(); renderAll(); renderPrinter(); renderMedia(); tick(); resetIdle();
+buildAnalog(); applyAmbStyle(); applyTheme(); applyLook(); renderRooms(); renderAll(); renderPrinter(); renderMedia(); tick(); resetIdle(); goFace(faceIdx, false); nearNow();
 setInterval(tick, 1000);
 setInterval(() => {
   if (!printer.paused && printer.progress < 100) { printer.progress = Math.min(100, printer.progress + 0.5); renderPrinter(); }
