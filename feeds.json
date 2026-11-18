@@ -1,0 +1,21 @@
+[
+  { "title": "Mac4Ever", "url": "https://www.mac4ever.com/rss", "site": "https://www.mac4ever.com/" },
+  { "title": "MacGeneration", "url": "https://www.macg.co/rss.xml", "site": "https://www.macg.co/" },
+  { "title": "Gameblog", "url": "https://www.gameblog.fr/rss.php", "site": "https://www.gameblog.fr/" },
+  { "title": "jeuxvideo.com", "url": "https://www.jeuxvideo.com/rss/rss.xml", "site": "https://www.jeuxvideo.com/" },
+  { "title": "Numerama", "url": "https://www.numerama.com/feed/", "site": "https://www.numerama.com/" },
+  { "title": "iGeneration", "url": "https://www.igen.fr/", "site": "https://www.igen.fr/" },
+  { "title": "Frandroid", "url": "https://www.frandroid.com/feed", "site": "https://www.frandroid.com/" },
+  { "title": "Les Numériques", "url": "https://www.lesnumeriques.com/", "site": "https://www.lesnumeriques.com/" },
+  { "title": "Korben", "url": "https://korben.info/feed", "site": "https://korben.info/" },
+  { "title": "01net", "url": "https://www.01net.com/", "site": "https://www.01net.com/" },
+  { "title": "Journal du Geek", "url": "https://www.journaldugeek.com/feed/", "site": "https://www.journaldugeek.com/" },
+  { "title": "Gamekult", "url": "https://www.gamekult.com/", "site": "https://www.gamekult.com/" },
+  { "title": "Millenium", "url": "https://www.millenium.org/", "site": "https://www.millenium.org/" },
+  { "title": "iPhon.fr", "url": "https://www.iphon.fr/", "site": "https://www.iphon.fr/" },
+  { "title": "Le Monde", "url": "https://www.lemonde.fr/rss/une.xml", "site": "https://www.lemonde.fr/" },
+  { "title": "Franceinfo", "url": "https://www.francetvinfo.fr/titres.rss", "site": "https://www.francetvinfo.fr/" },
+  { "title": "The Verge", "url": "https://www.theverge.com/rss/index.xml", "site": "https://www.theverge.com/" },
+  { "title": "9to5Mac", "url": "https://9to5mac.com/feed/", "site": "https://9to5mac.com/" },
+  { "title": "Hacker News", "url": "https://hnrss.org/frontpage", "site": "https://news.ycombinator.com/" }
+]
