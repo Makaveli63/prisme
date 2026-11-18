@@ -45,8 +45,12 @@ svg { flex: none; }
 @keyframes kenburns2 { from { transform: scale(1) translate(-1%, 0); } to { transform: scale(1.12) translate(1%, -1.5%); } }
 .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(20deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 45%, rgba(0, 0, 0, 0) 70%); }
 :root[data-pos="center"] .shade { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, .45), rgba(0, 0, 0, .1) 70%); }
-.dim { position: absolute; inset: 0; pointer-events: none; background: rgba(25, 10, 0, .6); opacity: 0; transition: opacity 3s; }
-:root.night .dim { opacity: 1; }
+/* Atténuation : --dim va de 0 (plein jour) à 1 (nuit noire), calculé par dimLevel(). Voile chaud sur les photos,
+   texte un peu moins blanc (pas d'opacité sur .hud : elle casserait le verre, qui doit voir les photos). */
+:root { --dim: 0; }
+.dim { position: absolute; inset: 0; pointer-events: none; background: rgba(20, 8, 0, .82); opacity: var(--dim); transition: opacity 20s linear; }
+.hud { color: rgba(255, 244, 230, calc(1 - var(--dim) * .45)); transition: color 20s linear; }
+.hud .wx svg { opacity: calc(1 - var(--dim) * .4); }
 .empty { position: absolute; left: 50%; top: 8vh; transform: translateX(-50%); text-align: center; font-size: 1.05rem; color: var(--muted); white-space: nowrap; }
 
 /* Heure, date, météo : lisibles depuis le canapé */
@@ -124,8 +128,8 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
 <div class="stage" id="stage">
   <div class="slide" id="ph-a"></div><div class="slide" id="ph-b"></div>
   <div class="shade"></div>
-  <div class="dim"></div>
   <div class="empty" id="ph-empty" hidden>Touche l'écran pour passer en plein écran, ajouter des photos ou régler la météo.</div>
+  <div class="dim"></div>
 </div>
 
 <main class="hud" aria-live="off">
@@ -167,7 +171,11 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
     <label for="glass">Verre <small>transparent ↔ givré</small></label>
     <input type="range" id="glass" min="0" max="100" step="1">
   </div>
-  <div class="switch-row"><span id="night-l">Assombrir la nuit <small>(22 h – 7 h)</small></span><button class="switch" id="nightsw" role="switch" aria-labelledby="night-l"></button></div>
+  <div class="switch-row"><span id="night-l">Atténuer selon la lumière <small id="dim-src">(suit le soleil)</small></span><button class="switch" id="nightsw" role="switch" aria-labelledby="night-l"></button></div>
+  <div class="field" id="dim-field">
+    <label for="dimmax">Force de l'atténuation la nuit <small>légère ↔ forte</small></label>
+    <input type="range" id="dimmax" min="10" max="100" step="5">
+  </div>
   <div class="switch-row"><span id="lite-l">Mode léger <small>(appareil peu puissant)</small></span><button class="switch" id="lite" role="switch" aria-labelledby="lite-l"></button></div>
   <div class="foot">
     <button class="btn danger" id="clear">Effacer les photos de cet appareil</button>
@@ -186,7 +194,7 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add
 
 /* ---------- Réglages (gardés sur l'appareil) ---------- */
 const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-const cfg = { city: null, pos: "corner", every: 20, plate: true, glass: 30, night: true, lite: !!WEAK };
+const cfg = { city: null, pos: "corner", every: 20, plate: true, glass: 30, night: true, dimMax: 70, lite: !!WEAK };
 try { Object.assign(cfg, JSON.parse(localStorage.getItem("homeplus")) || {}); } catch (e) {}
 function save() { try { localStorage.setItem("homeplus", JSON.stringify(cfg)); } catch (e) {} }
 let PHOTO_MS = cfg.every * 1000;
@@ -408,7 +416,33 @@ function tick() {
   const now = new Date(), h = now.getHours(), d = fmtDate.format(now);
   $("time").textContent = fmtTime.format(now);
   $("date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
-  document.documentElement.classList.toggle("night", cfg.night && (h >= 22 || h < 7));
+  document.documentElement.style.setProperty("--dim", (cfg.night ? dimLevel(now) * cfg.dimMax / 100 : 0).toFixed(3));
+}
+
+/* ---------- Atténuation selon la lumière ----------
+   1. Capteur de lumière de l'appareil (AmbientLightSensor) s'il est accessible : peu de lux = écran atténué.
+   2. Sinon le soleil de la ville choisie (lever / coucher donnés par Open-Meteo, 7 h 30 / 18 h 30 par défaut) :
+      baisse au crépuscule, plus forte à partir de 22 h, remontée à l'aube. La luminosité réelle de l'écran reste
+      réglée par l'appareil (sur l'Echo Show : Paramètres › Affichage › Luminosité adaptative). */
+const hm = (iso) => { const m = /T(\d\d):(\d\d)/.exec(iso || ""); return m ? +m[1] * 60 + +m[2] : null; };
+let sun = { rise: 450, set: 1110 };
+try { Object.assign(sun, JSON.parse(localStorage.getItem("homeplus-sun")) || {}); } catch (e) {}
+let lux = null, luxAt = 0;
+try {
+  if ("AmbientLightSensor" in window) {
+    const als = new AmbientLightSensor({ frequency: 0.5 });
+    als.addEventListener("reading", () => { lux = als.illuminance; luxAt = Date.now(); $("dim-src").textContent = "(capteur de lumière)"; });
+    als.addEventListener("error", () => { lux = null; });
+    als.start();
+  }
+} catch (e) {}
+const ramp = (x, a, b) => Math.min(1, Math.max(0, (x - a) / (b - a)));
+function dimLevel(now) {
+  if (lux != null && Date.now() - luxAt < 60000) return 1 - ramp(Math.log10(Math.max(lux, 1)), 0, Math.log10(150));
+  const m = now.getHours() * 60 + now.getMinutes();
+  const evening = .5 * ramp(m, sun.set - 30, sun.set + 60) + .5 * ramp(m, 22 * 60, 23 * 60);   // 0 → 1 dans la soirée
+  const morning = 1 - ramp(m, sun.rise - 60, sun.rise + 30);                                     // 1 → 0 à l'aube
+  return m < 12 * 60 ? morning : evening;
 }
 
 /* ---------- Météo (Open-Meteo : gratuit, sans clé) ---------- */
@@ -443,9 +477,11 @@ function showWeather(w) {
 async function loadWeather() {
   if (!cfg.city) { showWeather(null); return; }
   try {
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.city.lat}&longitude=${cfg.city.lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto`;
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.city.lat}&longitude=${cfg.city.lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=1&timezone=auto`;
     const j = await fetch(u).then((r) => r.json());
     const w = { temp: j.current.temperature_2m, code: j.current.weather_code, day: !!j.current.is_day, hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0], at: Date.now() };
+    sun = { rise: hm(j.daily.sunrise[0]), set: hm(j.daily.sunset[0]) };
+    try { localStorage.setItem("homeplus-sun", JSON.stringify(sun)); } catch (e) {}
     try { localStorage.setItem("homeplus-wx", JSON.stringify(w)); } catch (e) {}
     showWeather(w);
   } catch (e) {
@@ -478,6 +514,7 @@ function apply() {
   $("every").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.v === cfg.every)));
   $("plate").setAttribute("aria-checked", String(!!cfg.plate));
   $("nightsw").setAttribute("aria-checked", String(!!cfg.night));
+  $("dimmax").value = cfg.dimMax; $("dim-field").hidden = !cfg.night;
   $("lite").setAttribute("aria-checked", String(!!cfg.lite));
   $("glass").value = cfg.glass; $("glass-field").hidden = !cfg.plate;
   tick();
@@ -486,6 +523,7 @@ $("pos").addEventListener("click", (e) => { const b = e.target.closest("[data-v]
 $("every").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { cfg.every = +b.dataset.v; save(); apply(); Photos.next(); } });
 $("plate").addEventListener("click", () => { cfg.plate = !cfg.plate; save(); apply(); });
 $("nightsw").addEventListener("click", () => { cfg.night = !cfg.night; save(); apply(); });
+$("dimmax").addEventListener("input", (e) => { cfg.dimMax = +e.target.value; apply(); clearTimeout(apply.d); apply.d = setTimeout(save, 300); });
 $("lite").addEventListener("click", () => { cfg.lite = !cfg.lite; save(); apply(); });
 $("glass").addEventListener("input", (e) => { cfg.glass = +e.target.value; apply(); clearTimeout(apply.t); apply.t = setTimeout(save, 300); });
 $("city-ok").addEventListener("click", () => { const v = $("city").value.trim(); if (v) setCity(v); });
