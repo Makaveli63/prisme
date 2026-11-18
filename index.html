@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Home+</title>
-<meta name="theme-color" content="#0b0d13">
+<meta name="theme-color" content="#07080f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,114 +13,149 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
-/* Home+ : cadre photo. Une très grande horloge lisible de loin, la date et la météo, sur un diaporama de photos.
-   Matière : verre liquide (flou, liseré spéculaire, réfraction des bords dans Chromium). */
+/* Home+ : cadre photo. Très grande horloge lisible de loin, date, fête, météo et prévisions, rappels, comptes à rebours,
+   anniversaires, sur un diaporama de photos. Tout se règle depuis « Réglages » (toucher l'écran). */
 :root {
-  --text: #fff; --muted: rgba(255, 255, 255, .78); --tint: #2f7bf5;
-  --g-v: .3;
-  --g-fill: rgba(255, 255, 255, calc(.04 + var(--g-v) * .3)); --g-fill-hi: rgba(255, 255, 255, calc(.12 + var(--g-v) * .3));
-  --g-blur: calc(4px + var(--g-v) * 26px); --g-sat: 170%;
-  --g-rim: rgba(255, 255, 255, .8); --g-rim-lo: rgba(255, 255, 255, .28); --g-inner: rgba(255, 255, 255, .3);
-  --g-shadow: 0 20px 50px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .2);
-  --spring: cubic-bezier(.34, 1.56, .64, 1);
-  --lx: 0; --ly: -1; --lg-f: blur(0px);
+  --ink: #fff; --ink-soft: rgba(255, 255, 255, .8); --glow: rgba(0, 0, 0, .45);
+  --dim: 0; --tint: #2f7bf5;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rounded: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", "Arial Rounded MT Bold", var(--font);
   color-scheme: dark;
 }
+/* Chiffres sombres quand la photo est claire sous l'heure (calculé sur chaque photo). */
+:root.ink-dark { --ink: #14161c; --ink-soft: rgba(20, 22, 28, .78); --glow: rgba(255, 255, 255, .55); }
+/* Lumière pour les enfants : bleu = on dort, jaune = on peut se lever. */
+:root.kid-sleep { --ink: #7fb0ff; --ink-soft: rgba(127, 176, 255, .8); --glow: rgba(0, 10, 40, .6); }
+:root.kid-wake { --ink: #ffd35a; --ink-soft: rgba(255, 211, 90, .85); --glow: rgba(40, 25, 0, .6); }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body { margin: 0; overflow: hidden; background: #07080f; color: var(--text); font: 16px/1.35 var(--font); -webkit-font-smoothing: antialiased; -webkit-user-select: none; user-select: none; }
+body { margin: 0; overflow: hidden; background: #07080f; color: #fff; font: 16px/1.3 var(--font); -webkit-font-smoothing: antialiased; -webkit-user-select: none; user-select: none; }
 button, input, select { font: inherit; color: inherit; }
 button { background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; }
 svg { flex: none; }
 
 /* Diaporama */
-.stage { position: fixed; inset: 0; overflow: hidden; background: #07080f; }
+.stage { position: fixed; inset: 0; overflow: hidden; background: #07080f; transition: opacity 3s; }
 .slide { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.8s ease; }
 .slide.show { opacity: 1; }
 .slide.kb { animation: kenburns 24s ease-out both; }
 .slide.kb.alt { animation-name: kenburns2; }
 @keyframes kenburns { from { transform: scale(1.12) translate(1.5%, 1%); } to { transform: scale(1) translate(0, 0); } }
 @keyframes kenburns2 { from { transform: scale(1) translate(-1%, 0); } to { transform: scale(1.12) translate(1%, -1.5%); } }
-.shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(20deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 45%, rgba(0, 0, 0, 0) 70%); }
-:root[data-pos="center"] .shade { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, .45), rgba(0, 0, 0, .1) 70%); }
-/* Atténuation : --dim va de 0 (plein jour) à 1 (nuit noire), calculé par dimLevel(). Voile chaud sur les photos,
-   texte un peu moins blanc (pas d'opacité sur .hud : elle casserait le verre, qui doit voir les photos). */
-:root { --dim: 0; }
+.shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(20deg, rgba(0, 0, 0, .5), rgba(0, 0, 0, .12) 45%, rgba(0, 0, 0, 0) 70%); transition: opacity 1.5s; }
+:root[data-pos="center"] .shade { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, .4), rgba(0, 0, 0, .08) 70%); }
+:root.ink-dark .shade { opacity: 0; }
 .dim { position: absolute; inset: 0; pointer-events: none; background: rgba(20, 8, 0, .82); opacity: var(--dim); transition: opacity 20s linear; }
-.hud { color: rgba(255, 244, 230, calc(1 - var(--dim) * .45)); transition: color 20s linear; }
-.hud .wx svg { opacity: calc(1 - var(--dim) * .4); }
-.empty { position: absolute; left: 50%; top: 8vh; transform: translateX(-50%); text-align: center; font-size: 1.05rem; color: var(--muted); white-space: nowrap; }
+.empty { position: absolute; left: 50%; top: 6vh; transform: translateX(-50%); text-align: center; font-size: 1rem; color: rgba(255, 255, 255, .75); white-space: nowrap; text-shadow: 0 1px 8px rgba(0, 0, 0, .5); }
+.caption { position: absolute; right: 3vw; bottom: 4vh; font-size: min(3vh, 2.2vw); font-weight: 600; color: rgba(255, 255, 255, .85); text-shadow: 0 1px 10px rgba(0, 0, 0, .6); transition: opacity 1.5s; }
 
-/* Heure, date, météo : lisibles depuis le canapé */
-.hud { position: fixed; left: max(5vw, env(safe-area-inset-left)); bottom: max(6vh, env(safe-area-inset-bottom)); animation: drift 120s ease-in-out infinite alternate; }
+/* Heure et informations : lisibles depuis le canapé. Pas de cadre : le texte flotte sur la photo. */
+.hud { position: fixed; left: max(5vw, env(safe-area-inset-left)); bottom: max(6vh, env(safe-area-inset-bottom)); max-width: 90vw;
+  color: var(--ink); text-shadow: 0 .02em .5em var(--glow), 0 0 .08em var(--glow); animation: drift 120s ease-in-out infinite alternate;
+  transition: color 1.5s, text-shadow 1.5s; }
 :root[data-pos="center"] .hud { left: 50%; top: 50%; bottom: auto; translate: -50% -50%; text-align: center; }
 @keyframes drift { from { transform: translate(-1vmin, -.8vmin); } to { transform: translate(1vmin, .8vmin); } }
-.panel { padding: 2.2vh 3.4vh 2.6vh; border-radius: 5vh; }
-:root.noplate .panel { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; }
-:root.noplate .panel::after { display: none; }
-.time { font-size: min(32vh, 24vw); line-height: .9; font-weight: 650; letter-spacing: -.045em; font-variant-numeric: tabular-nums; margin-left: -.03em;
-  text-shadow: 0 .02em .12em rgba(0, 0, 0, .35); }
+.hud > * { opacity: calc(1 - var(--dim) * .45); transition: opacity 20s linear; }
+.time { font-size: min(32vh, 24vw); line-height: .9; font-weight: 650; letter-spacing: -.045em; font-variant-numeric: tabular-nums; margin-left: -.03em; white-space: nowrap; }
 :root[data-pos="center"] .time { font-size: min(40vh, 30vw); }
-.line { display: flex; align-items: center; gap: .6em; flex-wrap: wrap; margin-top: 1.4vh; font-size: min(6vh, 4.6vw); font-weight: 600; text-shadow: 0 1px 12px rgba(0, 0, 0, .35); }
+.time .sec { font-size: .32em; font-weight: 600; letter-spacing: -.02em; margin-left: .12em; opacity: .75; }
+.time .colon.blink { animation: blink 2s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+:root[data-style="thin"] .time { font-weight: 200; letter-spacing: -.035em; }
+:root[data-style="rounded"] .time { font-family: var(--rounded); font-weight: 800; letter-spacing: -.02em; }
+:root[data-style="words"] .time { font-size: min(10.5vh, 7.4vw); line-height: 1.08; letter-spacing: -.02em; white-space: normal; max-width: 80vw; font-weight: 700; }
+:root[data-pos="center"][data-style="words"] .time { font-size: min(12vh, 8.5vw); }
+.analog { display: none; width: min(70vh, 40vw); aspect-ratio: 1; margin-bottom: 1vh; filter: drop-shadow(0 .4vh 1.6vh var(--glow)); }
+:root[data-pos="center"] .analog { width: min(76vh, 42vw); }
+/* Aiguilles : cadran à gauche, informations à droite. */
+:root[data-style="analog"] .hud { width: 90vw; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 4vw; align-items: center; align-content: center; text-align: left; }
+:root[data-style="analog"] .hud > * { grid-column: 2; }
+:root[data-style="analog"] .hud > .analog { grid-column: 1; grid-row: 1 / span 9; margin: 0; }
+:root[data-style="analog"][data-pos="center"] .line, :root[data-style="analog"][data-pos="center"] .chips { justify-content: flex-start; }
+:root[data-style="analog"] .analog { display: block; }
+:root[data-style="analog"] .time { display: none; }
+.analog svg { width: 100%; height: 100%; overflow: visible; color: var(--ink); }
+.analog .tick { stroke: currentColor; stroke-linecap: round; opacity: .55; }
+.analog .tick.big { opacity: 1; }
+.analog .hand { stroke: currentColor; stroke-linecap: round; }
+.analog .hand.s { stroke: #ff9f43; }
+.analog .hub { fill: currentColor; }
+.line { margin-top: 1.2vh; font-size: min(5.6vh, 4.2vw); font-weight: 600; display: flex; align-items: center; gap: .5em; flex-wrap: wrap; }
 :root[data-pos="center"] .line { justify-content: center; }
-.wxline { margin-top: .6vh; }
+.line.small { font-size: min(4vh, 3vw); font-weight: 550; color: var(--ink-soft); margin-top: .6vh; }
 .wx { display: inline-flex; align-items: center; gap: .35em; }
 .wx svg { width: 1.25em; height: 1.25em; }
-.wx small { font-size: .72em; font-weight: 550; color: var(--muted); }
+.wx small, .line small { font-size: .72em; font-weight: 550; color: var(--ink-soft); }
+.days { display: inline-flex; gap: 1em; flex-wrap: wrap; }
+.days span { display: inline-flex; align-items: center; gap: .25em; }
+.days svg { width: 1.15em; height: 1.15em; }
+.days b { font-weight: 650; }
+.chips { display: flex; gap: .5em; flex-wrap: wrap; margin-top: 1.4vh; font-size: min(4.2vh, 3.1vw); font-weight: 650; }
+:root[data-pos="center"] .chips { justify-content: center; }
+.chip { white-space: nowrap; padding: .3em .8em; border-radius: 99px; background: rgba(0, 0, 0, .35); color: #fff; text-shadow: none; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.chip.now { background: #ff9f0a; color: #1a0f00; animation: pulse 2s ease-in-out infinite; }
+.chip.bday { background: #ff375f; }
+@keyframes pulse { 50% { transform: scale(1.04); } }
+.banner { margin-bottom: 1.6vh; font-size: min(6.5vh, 4.8vw); font-weight: 750; display: inline-block; padding: .25em .8em; border-radius: 99px; background: #ff9f0a; color: #1a0f00; text-shadow: none; }
+.banner.soon { background: rgba(0, 0, 0, .45); color: #fff; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.kid { font-size: min(5vh, 3.8vw); font-weight: 700; margin-bottom: 1vh; display: inline-flex; align-items: center; gap: .4em; }
+.kid svg { width: 1.3em; height: 1.3em; }
 
-/* Verre liquide */
-.glass { position: relative; isolation: isolate;
-  background: linear-gradient(180deg, var(--g-fill-hi), var(--g-fill) 45%);
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
-  backdrop-filter: var(--lg-f) blur(var(--g-blur)) saturate(var(--g-sat)) brightness(1.02);
-  box-shadow: var(--g-shadow), inset 0 0 0 .5px var(--g-rim-lo), inset 0 1px 1px var(--g-inner), inset 0 -14px 30px -18px rgba(0, 0, 0, .25); }
-.glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; padding: 1.4px;
-  background: linear-gradient(calc(atan2(var(--ly), var(--lx)) + 90deg), var(--g-rim) 0%, transparent 32%, transparent 62%, var(--g-rim) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
-@supports not (color: color-mix(in srgb, red 50%, blue)) {
-  .glass::after { background: linear-gradient(135deg, var(--g-rim), transparent 32%, transparent 62%, var(--g-rim)); }
-}
-:root.lite { --g-blur: 8px; }
+/* Écran presque noir en pleine nuit : seulement l'heure, en rouge très sombre. */
+:root.deep .stage { opacity: 0; }
+:root.deep .hud { color: #6b0a0a; text-shadow: none; animation: none; }
+:root.deep .hud > :not(.time):not(.analog) { display: none; }
+:root.deep .hud > * { opacity: 1; }
+:root.deep .analog { filter: none; }
+:root.deep .analog .hand.s { stroke: #6b0a0a; }
+:root.deep .caption, :root.deep .empty { display: none; }
 :root.lite .slide.kb, :root.lite .hud { animation: none; }
-:root.lite .glass { --lg-f: blur(0px) !important; }
+@media (prefers-reduced-motion: reduce) { .slide.kb, .hud, .chip.now { animation: none; } }
 
 /* Boutons qui apparaissent au toucher */
 .tools { position: fixed; right: max(3vw, env(safe-area-inset-right)); top: max(3vh, env(safe-area-inset-top)); display: flex; gap: .7rem; opacity: 0; pointer-events: none; transition: opacity .4s; }
 .tools.on { opacity: 1; pointer-events: auto; }
-.pill { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.2rem; border-radius: 99px; font-weight: 650; font-size: 1.05rem; cursor: pointer; }
+.pill { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.2rem; border-radius: 99px; font-weight: 650; font-size: 1.05rem; cursor: pointer; color: #fff;
+  background: rgba(20, 22, 30, .55); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
 .pill svg { width: 1.3rem; height: 1.3rem; }
 
 /* Réglages */
-dialog { border: 0; padding: 1.6rem; border-radius: 2rem; width: min(30rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow: auto; color: #0d1220;
-  background: rgba(245, 247, 252, .86); -webkit-backdrop-filter: blur(28px) saturate(200%); backdrop-filter: blur(28px) saturate(200%);
-  box-shadow: 0 40px 90px rgba(0, 0, 0, .4), inset 0 1px 1px #fff; }
-dialog[open] { animation: pop .45s var(--spring); }
-@keyframes pop { from { opacity: 0; transform: scale(.9) translateY(1rem); } }
-dialog::backdrop { background: rgba(0, 0, 0, .35); }
-dialog h2 { margin: 0 0 .3rem; font-size: 1.3rem; }
-.field { margin-top: 1.1rem; }
-.field > label, .field > .lbl { display: block; font-weight: 650; margin-bottom: .45rem; }
-.field small { color: #6b7286; font-weight: 500; }
-.row { display: flex; gap: .6rem; align-items: center; }
-.row input[type=text] { flex: 1; min-width: 0; padding: .7rem 1rem; border-radius: 99px; border: 0; background: rgba(110, 120, 150, .18); color: #0d1220; outline: none; }
-.btn { padding: .7rem 1.15rem; border-radius: 99px; font-weight: 650; background: rgba(110, 120, 150, .2); white-space: nowrap; }
+dialog { border: 0; padding: 1.4rem 1.5rem; border-radius: 1.8rem; width: min(36rem, calc(100vw - 1.2rem)); max-height: calc(100vh - 1.2rem); overflow: auto; color: #0d1220;
+  background: rgba(245, 247, 252, .96); box-shadow: 0 40px 90px rgba(0, 0, 0, .45); -webkit-user-select: text; user-select: text; }
+dialog[open] { animation: pop .35s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes pop { from { opacity: 0; transform: scale(.94) translateY(1rem); } }
+dialog::backdrop { background: rgba(0, 0, 0, .45); }
+dialog h2 { margin: 0; font-size: 1.35rem; }
+dialog h3 { margin: 1.5rem 0 .2rem; font-size: 1.05rem; color: #2f7bf5; text-transform: uppercase; letter-spacing: .04em; font-size: .85rem; }
+.field { margin-top: .9rem; }
+.field > label, .field > .lbl { display: block; font-weight: 650; margin-bottom: .4rem; }
+small, .hint { color: #6b7286; font-weight: 500; }
+.hint { font-size: .9rem; margin: .3rem 0 0; }
+.row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.row input[type=text], .row input[type=time], .row input[type=date], .row select { flex: 1 1 8rem; min-width: 0; padding: .65rem .9rem; border-radius: .9rem; border: 0; background: rgba(110, 120, 150, .16); color: #0d1220; outline: none; }
+.row input[type=time] { flex: 0 1 7.5rem; }
+.btn { padding: .65rem 1.1rem; border-radius: 99px; font-weight: 650; background: rgba(110, 120, 150, .18); white-space: nowrap; }
 .btn.primary { background: var(--tint); color: #fff; }
 .btn.danger { color: #d0213a; }
-.seg { display: flex; gap: .2rem; padding: .25rem; border-radius: 99px; background: rgba(110, 120, 150, .18); }
-.seg button { flex: 1; padding: .55rem .6rem; border-radius: 99px; font-weight: 650; color: #6b7286; }
+.seg { display: flex; gap: .2rem; padding: .25rem; border-radius: 99px; background: rgba(110, 120, 150, .16); flex-wrap: wrap; }
+.seg button { flex: 1; padding: .5rem .55rem; border-radius: 99px; font-weight: 650; color: #6b7286; white-space: nowrap; }
 .seg button[aria-pressed="true"] { background: #fff; color: #0d1220; box-shadow: 0 3px 10px rgba(30, 40, 90, .14); }
 input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
-.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.1rem; font-weight: 650; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .9rem; font-weight: 650; }
 .switch { flex: none; width: 3.4rem; height: 2rem; border-radius: 99px; background: rgba(110, 120, 150, .3); position: relative; transition: background .3s; }
-.switch::after { content: ""; position: absolute; top: .2rem; left: .2rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); transition: transform .45s var(--spring); }
+.switch::after { content: ""; position: absolute; top: .2rem; left: .2rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); transition: transform .4s cubic-bezier(.34, 1.56, .64, 1); }
 .switch[aria-checked="true"] { background: #34c759; }
 .switch[aria-checked="true"]::after { transform: translateX(1.4rem); }
-.foot { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.list { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .35rem; }
+.list li { display: flex; align-items: center; gap: .6rem; padding: .5rem .5rem .5rem .9rem; border-radius: .9rem; background: rgba(110, 120, 150, .1); }
+.list li span { flex: 1; min-width: 0; }
+.list li button { width: 2rem; height: 2rem; border-radius: 50%; font-size: 1.2rem; color: #d0213a; background: rgba(208, 33, 58, .08); }
+.sub { margin-left: .5rem; padding-left: .9rem; border-left: 3px solid rgba(110, 120, 150, .2); }
+.foot { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-top: 1.5rem; position: sticky; bottom: -1.4rem; padding: .8rem 0 1.4rem; background: rgba(245, 247, 252, .96); }
 
-.toast { position: fixed; left: 50%; top: 13vh; transform: translate(-50%, -1rem); padding: .8rem 1.3rem; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .25s, transform .4s var(--spring); max-width: 90vw; text-align: center; }
+.toast { position: fixed; left: 50%; top: 13vh; transform: translate(-50%, -1rem); padding: .8rem 1.3rem; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .4s; max-width: 90vw; text-align: center; color: #fff; background: rgba(20, 22, 30, .75); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
@@ -128,55 +163,82 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
 <div class="stage" id="stage">
   <div class="slide" id="ph-a"></div><div class="slide" id="ph-b"></div>
   <div class="shade"></div>
-  <div class="empty" id="ph-empty" hidden>Touche l'écran pour passer en plein écran, ajouter des photos ou régler la météo.</div>
+  <div class="empty" id="ph-empty" hidden>Touche l'écran pour passer en plein écran, ajouter des photos ou ouvrir les réglages.</div>
+  <div class="caption" id="caption" hidden></div>
   <div class="dim"></div>
 </div>
 
-<main class="hud" aria-live="off">
-  <div class="panel glass">
-    <div class="time" id="time">--:--</div>
-    <div class="line" id="date"></div>
-    <div class="line wxline" id="wx-line" hidden><span class="wx" id="wx"></span></div>
-  </div>
+<main class="hud" id="hud">
+  <div id="banner" hidden></div>
+  <div class="kid" id="kid" hidden></div>
+  <div class="analog" id="analog"></div>
+  <div class="time" id="time">--:--</div>
+  <div class="line" id="date"></div>
+  <div class="line small" id="fete" hidden></div>
+  <div class="line" id="wx-line" hidden><span class="wx" id="wx"></span></div>
+  <div class="line small" id="fc" hidden></div>
+  <div class="chips" id="chips" hidden></div>
 </main>
 
 <div class="tools" id="tools">
-  <label class="pill glass" for="ph-file" id="add-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4zM12 10v6M9 13h6"/></svg>Ajouter des photos</label>
-  <button class="pill glass" id="set-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"/></svg>Réglages</button>
+  <label class="pill" for="ph-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4zM12 10v6M9 13h6"/></svg>Ajouter des photos</label>
+  <button class="pill" id="set-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"/></svg>Réglages</button>
 </div>
 <input type="file" id="ph-file" accept="image/*" multiple hidden>
 
 <dialog id="settings" aria-labelledby="set-title">
   <h2 id="set-title">Réglages</h2>
-  <div class="field">
-    <label for="city">Ville pour la météo</label>
+
+  <h3>Horloge</h3>
+  <div class="field"><span class="lbl">Style</span>
+    <div class="seg" id="style"><button data-v="bold">Épais</button><button data-v="thin">Fin</button><button data-v="rounded">Arrondi</button><button data-v="analog">Aiguilles</button><button data-v="words">En mots</button></div></div>
+  <div class="field"><span class="lbl">Position</span>
+    <div class="seg" id="pos"><button data-v="corner">En bas à gauche</button><button data-v="center">Au centre, en très grand</button></div></div>
+  <div class="field"><span class="lbl">Secondes</span>
+    <div class="seg" id="sec"><button data-v="off">Non</button><button data-v="on">Afficher</button><button data-v="blink">Deux-points qui clignotent</button></div></div>
+  <div class="field"><span class="lbl">Couleur des chiffres</span>
+    <div class="seg" id="ink"><button data-v="auto">Selon la photo</button><button data-v="white">Toujours blanc</button></div></div>
+
+  <h3>Météo</h3>
+  <div class="field"><label for="city">Ville</label>
     <div class="row"><input type="text" id="city" placeholder="Ex. Clermont-Ferrand" autocomplete="off"><button class="btn primary" id="city-ok">Valider</button></div>
-    <small id="city-state"></small>
-  </div>
-  <div class="field" id="send-field" hidden>
-    <span class="lbl">Envoyer des photos depuis l'iPhone</span>
+    <p class="hint" id="city-state"></p></div>
+  <div class="switch-row"><span id="fc-l">Prévisions <small>(pluie dans les heures à venir et 3 jours)</small></span><button class="switch" id="fcsw" role="switch" aria-labelledby="fc-l"></button></div>
+  <div class="switch-row"><span id="fete-l">Fête du jour</span><button class="switch" id="fetesw" role="switch" aria-labelledby="fete-l"></button></div>
+
+  <h3>Photos</h3>
+  <div class="field"><span class="lbl">Changer de photo toutes les</span>
+    <div class="seg" id="every"><button data-v="10">10 s</button><button data-v="20">20 s</button><button data-v="60">1 min</button><button data-v="300">5 min</button></div></div>
+  <div class="switch-row"><span id="capd-l">Date de la photo <small>(ex. « Juillet 2024 »)</small></span><button class="switch" id="capsw" role="switch" aria-labelledby="capd-l"></button></div>
+  <p class="hint">Albums de saison : depuis l'iPhone, range des photos dans « Noël », « Halloween », « Hiver », « Printemps », « Été » ou « Automne » : elles ne défilent qu'à leur période.</p>
+  <div class="field" id="send-field" hidden><span class="lbl">Envoyer des photos depuis l'iPhone</span>
     <small>Ouvre cette adresse dans Safari sur l'iPhone :</small>
-    <div style="font-weight:700;font-size:1.1rem;margin-top:.3rem;-webkit-user-select:all;user-select:all" id="send-url"></div>
-  </div>
-  <div class="field">
-    <span class="lbl">Position de l'heure</span>
-    <div class="seg" id="pos"><button data-v="corner">En bas à gauche</button><button data-v="center">Au centre, en très grand</button></div>
-  </div>
-  <div class="field">
-    <span class="lbl">Changer de photo toutes les</span>
-    <div class="seg" id="every"><button data-v="10">10 s</button><button data-v="20">20 s</button><button data-v="60">1 min</button><button data-v="300">5 min</button></div>
-  </div>
-  <div class="switch-row"><span id="plate-l">Fond en verre derrière l'heure</span><button class="switch" id="plate" role="switch" aria-labelledby="plate-l"></button></div>
-  <div class="field" id="glass-field">
-    <label for="glass">Verre <small>transparent ↔ givré</small></label>
-    <input type="range" id="glass" min="0" max="100" step="1">
-  </div>
+    <div style="font-weight:700;font-size:1.1rem;margin-top:.3rem" id="send-url"></div></div>
+
+  <h3>Lumière</h3>
   <div class="switch-row"><span id="night-l">Atténuer selon la lumière <small id="dim-src">(suit le soleil)</small></span><button class="switch" id="nightsw" role="switch" aria-labelledby="night-l"></button></div>
-  <div class="field" id="dim-field">
-    <label for="dimmax">Force de l'atténuation la nuit <small>légère ↔ forte</small></label>
-    <input type="range" id="dimmax" min="10" max="100" step="5">
-  </div>
+  <div class="field sub" id="dim-field"><label for="dimmax">Force de l'atténuation la nuit <small>légère ↔ forte</small></label><input type="range" id="dimmax" min="10" max="100" step="5"></div>
+  <div class="switch-row"><span id="deep-l">Nuit noire <small>(juste l'heure en rouge sombre)</small></span><button class="switch" id="deepsw" role="switch" aria-labelledby="deep-l"></button></div>
+  <div class="field sub row" id="deep-field"><span>de</span><input type="time" id="deep-from"><span>à</span><input type="time" id="deep-to"></div>
   <div class="switch-row"><span id="lite-l">Mode léger <small>(appareil peu puissant)</small></span><button class="switch" id="lite" role="switch" aria-labelledby="lite-l"></button></div>
+
+  <h3>Enfants</h3>
+  <div class="switch-row"><span id="kid-l">Lumière dodo <small>(bleu : on dort, jaune : on peut se lever)</small></span><button class="switch" id="kidsw" role="switch" aria-labelledby="kid-l"></button></div>
+  <div class="field sub row" id="kid-field"><span>Coucher</span><input type="time" id="kid-bed"><span>Lever</span><input type="time" id="kid-wake"></div>
+
+  <h3>Famille</h3>
+  <p class="hint" id="fam-where">Gardé sur cet appareil.</p>
+  <div class="field"><span class="lbl">Rappels <small>(affichés 15 min avant)</small></span>
+    <ul class="list" id="rem-list"></ul>
+    <div class="row" style="margin-top:.5rem"><input type="time" id="rem-t" value="08:15"><input type="text" id="rem-x" placeholder="Ex. 🎒 École"><select id="rem-d"><option value="all">Tous les jours</option><option value="week">Lun – ven</option><option value="weekend">Week-end</option></select><button class="btn primary" id="rem-add">Ajouter</button></div></div>
+  <div class="field"><span class="lbl">Comptes à rebours</span>
+    <ul class="list" id="ev-list"></ul>
+    <div class="row" style="margin-top:.5rem"><input type="date" id="ev-d"><input type="text" id="ev-x" placeholder="Ex. 🏖️ Vacances"><label class="row" style="flex:0 0 auto;gap:.3rem"><input type="checkbox" id="ev-y"> chaque année</label><button class="btn primary" id="ev-add">Ajouter</button></div></div>
+  <div class="field"><span class="lbl">Anniversaires</span>
+    <ul class="list" id="bd-list"></ul>
+    <div class="row" style="margin-top:.5rem"><input type="date" id="bd-d"><input type="text" id="bd-x" placeholder="Prénom"><button class="btn primary" id="bd-add">Ajouter</button></div>
+    <p class="hint">Date de naissance : l'âge s'affiche le jour J, et le compte à rebours 30 jours avant.</p></div>
+
   <div class="foot">
     <button class="btn danger" id="clear">Effacer les photos de cet appareil</button>
     <button class="btn" id="android" hidden>Réglages Android</button>
@@ -184,148 +246,182 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
   </div>
 </dialog>
 
-<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const NATIVE = window.PrismeAndroid || null;   // présent dans l'APK Android
+const root = document.documentElement;
 let toastTimer;
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800); }
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+const toMin = (hhmm) => { const [h, m] = String(hhmm || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+const inRange = (m, a, b) => a <= b ? m >= a && m < b : m >= a || m < b;   // plage horaire, éventuellement à cheval sur minuit
 
-/* ---------- Réglages (gardés sur l'appareil) ---------- */
+/* ---------- Réglages de l'écran (gardés sur cet appareil) ---------- */
 const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-const cfg = { city: null, pos: "corner", every: 20, plate: true, glass: 30, night: true, dimMax: 70, lite: !!WEAK };
+const cfg = { city: null, style: "bold", pos: "corner", sec: "off", ink: "auto", forecast: true, fete: true, every: 20, caption: true,
+  night: true, dimMax: 70, deep: false, deepFrom: "01:00", deepTo: "06:00", kid: false, kidBed: "20:00", kidWake: "07:00", lite: !!WEAK };
 try { Object.assign(cfg, JSON.parse(localStorage.getItem("homeplus")) || {}); } catch (e) {}
 function save() { try { localStorage.setItem("homeplus", JSON.stringify(cfg)); } catch (e) {} }
 let PHOTO_MS = cfg.every * 1000;
 
-/* ---------- Liquid Glass ---------- */
-/* Réfraction : pour chaque taille de verre, une carte de déplacement (rouge = x, vert = y) est dessinée dans un canvas
-   à partir de la forme arrondie, puis appliquée au fond par un filtre SVG dans backdrop-filter. Les bords du verre
-   « tirent » le décor vers l'intérieur, comme une lentille bombée. Seul Chromium applique un filtre SVG en backdrop-filter :
-   ailleurs, le verre reste flou sans réfraction. */
-const LiquidGlass = (() => {
-  const ua = navigator.userAgent;
-  const reduce = matchMedia("(prefers-reduced-transparency: reduce)").matches;
-  const chromeMajor = +((ua.match(/Chrome\/(\d+)/) || [])[1] || 0);
-  const ok = chromeMajor >= 111 && !/Firefox\//.test(ua) && !reduce && CSS.supports("backdrop-filter", "url(#x)");
-  const NS = "http://www.w3.org/2000/svg";
-  const made = new Map(), tracked = new Set();
-  let defs = null, gain = 1;
-  if (ok) {
-    const svg = document.createElementNS(NS, "svg");
-    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
-    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
-    defs = document.createElementNS(NS, "defs"); svg.appendChild(defs); document.body.appendChild(svg);
-    document.documentElement.classList.add("lg");
-  }
-  function mapURL(w, h, r, bezel) {
-    const c = document.createElement("canvas"); c.width = w; c.height = h;
-    const ctx = c.getContext("2d"), img = ctx.createImageData(w, h), px = img.data;
-    const hw = w / 2, hh = h / 2;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      const cx = x + .5 - hw, cy = y + .5 - hh, ax = Math.abs(cx), ay = Math.abs(cy);
-      const qx = ax - (hw - r), qy = ay - (hh - r);
-      let dist, nx, ny;
-      if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy); dist = l - r; nx = qx / l; ny = qy / l; }
-      else if (qx > qy) { dist = qx - r; nx = 1; ny = 0; }
-      else { dist = qy - r; nx = 0; ny = 1; }
-      nx *= Math.sign(cx) || 1; ny *= Math.sign(cy) || 1;
-      const depth = -dist;                      // distance au bord, vers l'intérieur
-      let m = 0;
-      if (depth >= 0 && depth < bezel) { const t = 1 - depth / bezel; m = t * t * (3 - 2 * t) * t; }
-      px[i] = 128 - nx * m * 127; px[i + 1] = 128 - ny * m * 127; px[i + 2] = 128; px[i + 3] = 255;
+/* ---------- Famille : rappels, comptes à rebours, anniversaires ----------
+   Partagés par le serveur de la maison (tools/serveur.py, fichier donnees.json) quand la page vient de lui :
+   on peut alors les régler depuis l'iPhone. Sinon, gardés sur cet appareil. */
+let fam = { reminders: [], events: [{ d: "12-25", x: "🎄 Noël", y: true }], birthdays: [] };
+let SERVER = false;
+try { Object.assign(fam, JSON.parse(localStorage.getItem("homeplus-fam")) || {}); } catch (e) {}
+async function loadFam() {
+  try {
+    const r = await fetch("donnees.json", { cache: "no-store" });
+    if (r.ok && /json/.test(r.headers.get("content-type") || "")) {
+      SERVER = true;
+      const j = await r.json();
+      if (j && Array.isArray(j.reminders)) { fam = j; try { localStorage.setItem("homeplus-fam", JSON.stringify(fam)); } catch (e) {} }
     }
-    ctx.putImageData(img, 0, 0);
-    return c.toDataURL();
+  } catch (e) {}
+  renderFam(); lastMin = -1; tick();
+}
+async function saveFam() {
+  try { localStorage.setItem("homeplus-fam", JSON.stringify(fam)); } catch (e) {}
+  if (SERVER) {
+    let code = ""; try { code = localStorage.getItem("prisme-code") || ""; } catch (e) {}
+    for (let k = 0; k < 2; k++) {
+      const r = await fetch("donnees.json", { method: "POST", headers: { "Content-Type": "application/json", ...(code ? { "X-Prisme-Code": code } : {}) }, body: JSON.stringify(fam) }).catch(() => null);
+      if (!r || r.status !== 403) { if (!r || !r.ok) toast("Pas pu enregistrer sur le serveur"); break; }
+      code = prompt("Code du cadre :") || ""; try { localStorage.setItem("prisme-code", code); } catch (e) {}
+      if (!code) break;
+    }
   }
-  function filterFor(w, h, r, strength) {
-    const bezel = Math.max(6, Math.min(r * .95, Math.min(w, h) / 2.2, 26));
-    const key = `${w}x${h}r${Math.round(r)}s${strength}`;
-    if (made.has(key)) return made.get(key);
-    const id = `lg-${made.size}`;
-    const f = document.createElementNS(NS, "filter");
-    for (const [k, v] of Object.entries({ id, x: 0, y: 0, width: w, height: h, filterUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) f.setAttribute(k, v);
-    const im = document.createElementNS(NS, "feImage");
-    for (const [k, v] of Object.entries({ x: 0, y: 0, width: w, height: h, result: "map", preserveAspectRatio: "none" })) im.setAttribute(k, v);
-    im.setAttribute("href", mapURL(w, h, r, bezel));
-    const dm = document.createElementNS(NS, "feDisplacementMap");
-    for (const [k, v] of Object.entries({ in: "SourceGraphic", in2: "map", scale: (bezel * strength).toFixed(1), xChannelSelector: "R", yChannelSelector: "G" })) dm.setAttribute(k, v);
-    f.append(im, dm); defs.appendChild(f);
-    const url = `url(#${id})`; made.set(key, url); return url;
-  }
-  function apply(el) {
-    if (document.documentElement.classList.contains("lite")) return;   // mode léger : pas de calcul de réfraction
-    const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
-    if (!w || !h || w * h > 1.2e6) return;
-    const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);
-    const strength = el.matches(".pill") ? 1.5 : 1.15;
-    el.style.setProperty("--lg-f", filterFor(w, h, r, Math.round(strength * gain * 20) / 20));
-  }
-  const ro = ok ? new ResizeObserver((es) => es.forEach((e) => apply(e.target))) : null;
-  const watch = (root) => {
-    if (!ok || root.nodeType !== 1) return;
-    const els = root.matches(".glass") ? [root] : [];
-    els.push(...root.querySelectorAll(".glass"));
-    els.forEach((el) => { ro.observe(el); tracked.add(el); });
-  };
-  if (ok) {
-    new MutationObserver((ms) => ms.forEach((m) => {
-      m.addedNodes.forEach(watch);
-      m.removedNodes.forEach((n) => { if (n.nodeType === 1) { const gone = n.matches(".glass") ? [n] : []; gone.push(...n.querySelectorAll(".glass")); gone.forEach((e) => { ro.unobserve(e); tracked.delete(e); }); } });
-    })).observe(document.body, { childList: true, subtree: true });
-    watch(document.body);
-  }
+  renderFam(); lastMin = -1; tick();
+}
+const FETES = [["!Jour de l'An", "Basile", "Geneviève", "Odilon", "Édouard", "Mélaine", "Raymond", "Lucien", "Alix", "Guillaume", "Paulin", "Tatiana", "Yvette", "Nina", "Rémi", "Marcel", "Roseline", "Prisca", "Marius", "Sébastien", "Agnès", "Vincent", "Barnard", "François de Sales", "!Conversion de saint Paul", "Paule", "Angèle", "Thomas d'Aquin", "Gildas", "Martine", "Marcelle"], ["Ella", "!Chandeleur", "Blaise", "Véronique", "Agathe", "Gaston", "Eugénie", "Jacqueline", "Apolline", "Arnaud", "!Notre-Dame de Lourdes", "Félix", "Béatrice", "Valentin", "Claude", "Julienne", "Alexis", "Bernadette", "Gabin", "Aimée", "Damien", "Isabelle", "Lazare", "Modeste", "Roméo", "Nestor", "Honorine", "Romain", "Auguste"], ["Aubin", "Charles le Bon", "Guénolé", "Casimir", "Olive", "Colette", "Félicité", "Jean de Dieu", "Françoise", "Vivien", "Rosine", "Justine", "Rodrigue", "Mathilde", "Louise", "Bénédicte", "Patrice", "Cyrille", "Joseph", "Herbert", "Clémence", "Léa", "Victorien", "Catherine de Suède", "!Annonciation", "Larissa", "Habib", "Gontran", "Gwladys", "Amédée", "Benjamin"], ["Hugues", "Sandrine", "Richard", "Isidore", "Irène", "Marcellin", "Jean-Baptiste de la Salle", "Julie", "Gautier", "Fulbert", "Stanislas", "Jules", "Ida", "Maxime", "Paterne", "Benoît-Joseph", "Anicet", "Parfait", "Emma", "Odette", "Anselme", "Alexandre", "Georges", "Fidèle", "Marc", "Alida", "Zita", "Valérie", "Catherine de Sienne", "Robert"], ["!Fête du Travail", "Boris", "Philippe et Jacques", "Sylvain", "Judith", "Prudence", "Gisèle", "!Victoire 1945", "Pacôme", "Solange", "Estelle", "Achille", "Rolande", "Matthias", "Denise", "Honoré", "Pascal", "Éric", "Yves", "Bernardin", "Constantin", "Émile", "Didier", "Donatien", "Sophie", "Bérenger", "Augustin de Cantorbéry", "Germain", "Aymar", "Ferdinand", "!Visitation"], ["Justin", "Blandine", "Kévin", "Clotilde", "Igor", "Norbert", "Gilbert", "Médard", "Diane", "Landry", "Barnabé", "Guy", "Antoine de Padoue", "Élisée", "Germaine", "Jean-François Régis", "Hervé", "Léonce", "Romuald", "Silvère", "Rodolphe", "Alban", "Audrey", "Jean-Baptiste", "Prosper", "Anthelme", "Fernand", "Irénée", "Pierre et Paul", "Martial"], ["Thierry", "Martinien", "Thomas", "Florent", "Antoine", "Mariette", "Raoul", "Thibaut", "Amandine", "Ulrich", "Benoît", "Olivier", "Henri et Joël", "!Fête nationale", "Donald", "!Notre-Dame du Mont-Carmel", "Charlotte", "Frédéric", "Arsène", "Marina", "Victor", "Marie-Madeleine", "Brigitte", "Christine", "Jacques", "Anne et Joachim", "Nathalie", "Samson", "Marthe", "Juliette", "Ignace de Loyola"], ["Alphonse", "Julien Eymard", "Lydie", "Jean-Marie Vianney", "Abel", "!Transfiguration", "Gaétan", "Dominique", "Amour", "Laurent", "Claire", "Clarisse", "Hippolyte", "Evrard", "!Assomption", "Armel", "Hyacinthe", "Hélène", "Jean Eudes", "Bernard", "Christophe", "Fabrice", "Rose de Lima", "Barthélemy", "Louis", "Natacha", "Monique", "Augustin", "Sabine", "Fiacre", "Aristide"], ["Gilles", "Ingrid", "Grégoire", "Rosalie", "Raïssa", "Bertrand", "Reine", "Adrien", "Alain", "Inès", "Adelphe", "Apollinaire", "Aimé", "!La Croix glorieuse", "Roland", "Édith", "Renaud", "Nadège", "Émilie", "Davy", "Matthieu", "Maurice", "Constant", "Thècle", "Hermann", "Côme et Damien", "Vincent de Paul", "Venceslas", "Michel, Gabriel et Raphaël", "Jérôme"], ["Thérèse de l'Enfant-Jésus", "Léger", "Gérard", "François d'Assise", "Fleur", "Bruno", "Serge", "Pélagie", "Denis", "Ghislain", "Firmin", "Wilfried", "Géraud", "Juste", "Thérèse d'Avila", "Edwige", "Baudouin", "Luc", "René", "Adeline", "Céline", "Élodie", "Jean de Capistran", "Florentin", "Crépin", "Dimitri", "Émeline", "Simon et Jude", "Narcisse", "Bienvenue", "Quentin"], ["!Toussaint", "!Jour des défunts", "Hubert", "Charles", "Sylvie", "Bertille", "Carine", "Geoffroy", "Théodore", "Léon", "!Armistice 1918", "Christian", "Brice", "Sidoine", "Albert", "Marguerite", "Élisabeth", "Aude", "Tanguy", "Edmond", "!Présentation de Marie", "Cécile", "Clément", "Flora", "Catherine", "Delphine", "Séverin", "Jacques de la Marche", "Saturnin", "André"], ["Florence", "Viviane", "François-Xavier", "Barbara", "Gérald", "Nicolas", "Ambroise", "!Immaculée Conception", "Pierre Fourier", "Romaric", "Daniel", "Jeanne-Françoise de Chantal", "Lucie", "Odile", "Ninon", "Alice", "Gaël", "Gatien", "Urbain", "Théophile", "Pierre Canisius", "Françoise-Xavière", "Armand", "Adèle", "!Noël", "Étienne", "Jean", "!Saints Innocents", "David", "Roger", "Sylvestre"]];
+const fete = (d) => FETES[d.getMonth()][d.getDate() - 1];
 
-  /* Lumière au toucher : le verre gonfle et s'éclaire sous le doigt. */
-  let pressed = null;
-  document.addEventListener("pointerdown", (e) => {
-    const g = e.target.closest(".glass"); if (!g) return;
-    const b = g.getBoundingClientRect();
-    g.style.setProperty("--mx", `${e.clientX - b.left}px`); g.style.setProperty("--my", `${e.clientY - b.top}px`);
-    g.classList.add("pressing"); pressed = g;
-  }, { passive: true });
-  const release = () => { if (pressed) { pressed.classList.remove("pressing"); pressed = null; } };
-  document.addEventListener("pointerup", release, { passive: true });
-  document.addEventListener("pointercancel", release, { passive: true });
+/* ---------- Atténuation selon la lumière ----------
+   Capteur de lumière (AmbientLightSensor) s'il est accessible, sinon le soleil de la ville (lever / coucher Open-Meteo,
+   7 h 30 / 18 h 30 par défaut), avec baisse renforcée de 22 h à 23 h. La luminosité réelle reste réglée par l'appareil
+   (Echo Show : Paramètres › Affichage › Luminosité adaptative). */
+const hm = (iso) => { const m = /T(\d\d):(\d\d)/.exec(iso || ""); return m ? +m[1] * 60 + +m[2] : null; };
+let sun = { rise: 450, set: 1110 };
+try { Object.assign(sun, JSON.parse(localStorage.getItem("homeplus-sun")) || {}); } catch (e) {}
+let lux = null, luxAt = 0;
+try {
+  if ("AmbientLightSensor" in window) {
+    const als = new AmbientLightSensor({ frequency: 0.5 });
+    als.addEventListener("reading", () => { lux = als.illuminance; luxAt = Date.now(); $("dim-src").textContent = "(capteur de lumière)"; });
+    als.addEventListener("error", () => { lux = null; });
+    als.start();
+  }
+} catch (e) {}
+const ramp = (x, a, b) => Math.min(1, Math.max(0, (x - a) / (b - a)));
+function dimLevel(now) {
+  if (lux != null && Date.now() - luxAt < 60000) return 1 - ramp(Math.log10(Math.max(lux, 1)), 0, Math.log10(150));
+  const m = now.getHours() * 60 + now.getMinutes();
+  const evening = .5 * ramp(m, sun.set - 30, sun.set + 60) + .5 * ramp(m, 22 * 60, 23 * 60);
+  const morning = 1 - ramp(m, sun.rise - 60, sun.rise + 30);
+  return m < 12 * 60 ? morning : evening;
+}
 
-  /* Reflets : la lumière suit l'inclinaison de la tablette (ou la souris sur ordinateur). */
-  let raf = 0, lx = 0, ly = -1;
-  const setLight = (x, y) => {
-    lx = x; ly = y; if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0; const s = document.documentElement.style;
-      s.setProperty("--lx", lx.toFixed(3)); s.setProperty("--ly", ly.toFixed(3));
-    });
-  };
-  window.addEventListener("deviceorientation", (e) => {
-    if (e.gamma == null) return;
-    setLight(Math.max(-1, Math.min(1, e.gamma / 35)), -1 + Math.max(-1, Math.min(1, (e.beta - 45) / 45)) * .6);
-  });
-  window.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse") return;
-    setLight((e.clientX / innerWidth - .5) * 1.6, -1 + (e.clientY / innerHeight) * .5);
-  }, { passive: true });
-  /* Plus le verre est transparent, plus la réfraction se voit. */
-  const setGain = (g) => { gain = g; if (ok) tracked.forEach(apply); };
-  return { refract: ok, setGain };
-})();
+/* ---------- Icônes ---------- */
+const WX_ICONS = {
+  sun: '<circle cx="12" cy="12" r="4.2" fill="#ffd35a" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="#ffd35a"/>',
+  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="#c9d6ff" stroke="none"/>',
+  partly: '<circle cx="9" cy="9" r="3.6" fill="#ffd35a" stroke="none"/><path d="M9 2.8v1.6M2.8 9h1.6M4.6 4.6l1.1 1.1M13.4 4.6l-1.1 1.1" stroke="#ffd35a"/><path d="M8.5 19a3.5 3.5 0 0 1-.4-7 5 5 0 0 1 9.6 1.4A2.9 2.9 0 0 1 17.2 19z" fill="#fff" stroke="none"/>',
+  cloud: '<path d="M7 19a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 19z" fill="#fff" stroke="none"/>',
+  rain: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5" stroke="#7cc4ff"/>',
+  snow: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8 18.5h.01M12 20h.01M16 18.5h.01" stroke="#fff" stroke-width="2.6"/>',
+  storm: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M12.5 15l-2 3.5h3l-2 3.5" stroke="#ffd35a"/>',
+  fog: '<path d="M4 9h16M6 13h12M4 17h16" stroke="#fff"/>'
+};
+const wxIcon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WX_ICONS[n]}</svg>`;
 
+/* ---------- Météo et prévisions (Open-Meteo : gratuit, sans clé) ---------- */
+function wxKind(code, day = true) {
+  if (code === 0) return [day ? "sun" : "moon", day ? "Ensoleillé" : "Dégagé"];
+  if (code <= 2) return [day ? "partly" : "cloud", "Éclaircies"];
+  if (code === 3) return ["cloud", "Couvert"];
+  if (code === 45 || code === 48) return ["fog", "Brouillard"];
+  if (code >= 51 && code <= 57) return ["rain", "Bruine"];
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ["rain", code >= 80 ? "Averses" : "Pluie"];
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ["snow", "Neige"];
+  if (code >= 95) return ["storm", "Orage"];
+  return ["cloud", ""];
+}
+const wet = (code) => code >= 51 && ![71, 73, 75, 77, 85, 86].includes(code) ? "Pluie" : [71, 73, 75, 77, 85, 86].includes(code) ? "Neige" : null;
+const DAYS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+let wx = null;
+function showWeather() {
+  const w = wx;
+  if (!w) { $("wx-line").hidden = true; $("fc").hidden = true; return; }
+  const [icon, label] = wxKind(w.code, w.day);
+  $("wx").innerHTML = `${wxIcon(icon)}<span>${Math.round(w.temp)}°</span><small>${label}${w.hi != null ? ` · ${Math.round(w.lo)}° / ${Math.round(w.hi)}°` : ""}</small>`;
+  $("wx-line").hidden = false;
+  if (!cfg.forecast || !w.hours) { $("fc").hidden = true; return; }
+  // Pluie ou neige dans les 12 prochaines heures
+  let next = "";
+  const now = wet(w.code);
+  if (now) {
+    const stop = w.hours.find((h) => !wet(h.code) && h.p < 40);
+    next = stop ? `${now} jusqu'à ${stop.h} h` : `${now} toute la journée`;
+  } else {
+    const start = w.hours.find((h) => wet(h.code) && h.p >= 50);
+    next = start ? `${wet(start.code) === "Neige" ? "❄️ Neige" : "☔ Pluie"} vers ${start.h} h` : "Pas de pluie dans les 12 h";
+  }
+  const days = (w.days || []).slice(1, 4).map((d) => `<span><b>${d.n}</b>${wxIcon(wxKind(d.code)[0])}${Math.round(d.hi)}°<small>/${Math.round(d.lo)}°</small></span>`).join("");
+  $("fc").innerHTML = `<span>${next}</span>${days ? `<span class="days">${days}</span>` : ""}`;
+  $("fc").hidden = false;
+}
+async function loadWeather() {
+  if (!cfg.city) { wx = null; showWeather(); return; }
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.city.lat}&longitude=${cfg.city.lon}&current=temperature_2m,weather_code,is_day`
+      + `&hourly=weather_code,precipitation_probability&forecast_hours=13&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=4&timezone=auto`;
+    const j = await fetch(u).then((r) => r.json());
+    wx = { temp: j.current.temperature_2m, code: j.current.weather_code, day: !!j.current.is_day,
+      hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0], at: Date.now(),
+      hours: j.hourly.time.slice(1).map((t, k) => ({ h: +t.slice(11, 13), code: j.hourly.weather_code[k + 1], p: j.hourly.precipitation_probability[k + 1] ?? 0 })),
+      days: j.daily.time.map((t, k) => ({ n: DAYS[new Date(t + "T12:00").getDay()], code: j.daily.weather_code[k], hi: j.daily.temperature_2m_max[k], lo: j.daily.temperature_2m_min[k] })) };
+    sun = { rise: hm(j.daily.sunrise[0]), set: hm(j.daily.sunset[0]) };
+    try { localStorage.setItem("homeplus-wx", JSON.stringify(wx)); localStorage.setItem("homeplus-sun", JSON.stringify(sun)); } catch (e) {}
+  } catch (e) {
+    let w = null; try { w = JSON.parse(localStorage.getItem("homeplus-wx")); } catch (e2) {}
+    wx = w && Date.now() - w.at < 6 * 3600e3 ? w : null;   // hors ligne : dernière météo de moins de 6 h
+  }
+  showWeather();
+}
+async function setCity(name) {
+  $("city-state").textContent = "Recherche…";
+  try {
+    const j = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=fr&name=${encodeURIComponent(name)}`).then((r) => r.json());
+    const c = j.results && j.results[0];
+    if (!c) { $("city-state").textContent = "Ville introuvable."; return; }
+    cfg.city = { name: c.name, lat: c.latitude, lon: c.longitude }; save();
+    $("city").value = c.name; $("city-state").textContent = `Météo de ${c.name}${c.admin1 ? ", " + c.admin1 : ""}.`;
+    loadWeather();
+  } catch (e) { $("city-state").textContent = "Pas de connexion à Internet."; }
+}
 
 /* ---------- Photos (diaporama) ----------
-   Deux sources, cumulées :
-   - les photos ajoutées depuis l'appareil, réduites (2000 px max) et gardées dans IndexedDB, sur cet appareil seulement ;
-   - un dossier « photos/ » servi à côté de la page (liste de fichiers du serveur, ou photos/photos.json = tableau d'adresses),
-     ou l'adresse donnée par ?photos=… ; relu toutes les 2 min. Utile sur un Echo Show, qui n'a pas de galerie.
-   Rien n'est envoyé ni mis dans le dépôt (photos/ est ignoré par git). Sans photo, des fonds dégradés servent d'exemple. */
+   Sources cumulées : photos ajoutées depuis l'appareil (IndexedDB, jamais envoyées) et dossier « photos/ » servi à côté
+   de la page (photos/photos.json du serveur de la maison, ou liste de fichiers), ou ?photos=… ; relu toutes les 2 min.
+   Albums de saison : photos/noel/, photos/halloween/, photos/hiver/… ne défilent qu'à leur période.
+   Date de la photo : lue dans le nom donné par le serveur (« d20240715-… »). */
+const SEASONS = {
+  noel: (m, d) => (m === 11) || (m === 0 && d <= 6),
+  halloween: (m, d) => (m === 9 && d >= 15) || (m === 10 && d <= 2),
+  hiver: (m) => m === 11 || m <= 1, printemps: (m) => m >= 2 && m <= 4, ete: (m) => m >= 5 && m <= 7, automne: (m) => m >= 8 && m <= 10
+};
+const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const Photos = (() => {
   const SAMPLES = [
     "radial-gradient(circle at 20% 25%, #8fd3ff, transparent 55%), radial-gradient(circle at 80% 80%, #ff9a6b, transparent 55%), linear-gradient(135deg, #2b3cff, #9b3cf0)",
     "radial-gradient(circle at 75% 20%, #ffd36b, transparent 50%), radial-gradient(circle at 15% 85%, #ff6bb5, transparent 55%), linear-gradient(160deg, #ff7a3c, #7b2cbf)",
     "radial-gradient(circle at 30% 70%, #6bffc8, transparent 55%), radial-gradient(circle at 85% 30%, #6bb8ff, transparent 50%), linear-gradient(200deg, #0f6b5c, #1d2b7a)"
   ];
-  let urls = [], i = -1, timer = 0, front = $("ph-a"), back = $("ph-b"), db = null, alt = false;
+  let urls = [], i = -1, timer = 0, front = $("ph-a"), back = $("ph-b"), db = null, alt = false, sig = "";
   const open = () => new Promise((res) => {
     try {
       const r = indexedDB.open("prisme-photos", 1);
@@ -357,7 +453,7 @@ const Photos = (() => {
       try {
         const r = await fetch(u, { cache: "no-store" }); if (!r.ok) continue;
         const text = await r.text(), base = new URL(u, location.href);
-        if (/^\s*\[/.test(text)) return JSON.parse(text).map((x) => new URL(x, base).href);
+        if (/^\s*\[/.test(text)) return JSON.parse(text).map((x) => new URL(x.split("/").map(encodeURIComponent).join("/"), base).href);
         const links = [...new DOMParser().parseFromString(text, "text/html").querySelectorAll("a[href]")].map((a) => a.getAttribute("href"));
         const imgs = links.filter((h) => IMG.test(h.split("?")[0])).map((h) => new URL(h, base).href);
         if (imgs.length) return imgs;
@@ -365,9 +461,11 @@ const Photos = (() => {
     }
     return [];
   }
-  let sig = "";
+  const album = (u) => { const m = /\/photos\/([^/]+)\/[^/]+$/.exec(decodeURIComponent(u)); return m ? m[1].toLowerCase() : ""; };
+  const inSeason = (u, now) => { const a = album(u), f = SEASONS[a]; return !f || f(now.getMonth(), now.getDate()); };
   async function load() {
-    const blobs = await all(), far = await remote();
+    const blobs = await all(), now = new Date();
+    const far = (await remote()).filter((u) => inSeason(u, now));
     const nsig = blobs.length + "|" + far.join("|");
     if (nsig === sig) return;                 // rien de nouveau : le diaporama continue
     sig = nsig;
@@ -377,14 +475,41 @@ const Photos = (() => {
     $("ph-empty").hidden = urls.length > 0;
     i = -1; next();
   }
+  function caption(u) {
+    const m = /\/d(\d{4})(\d{2})\d{2}-[^/]*$/.exec(u || "");
+    $("caption").textContent = m ? `${MONTHS[+m[2] - 1]} ${m[1]}` : "";
+    $("caption").hidden = !cfg.caption || !m;
+  }
+  /* Chiffres blancs ou sombres selon la clarté de la photo sous l'heure. */
+  function ink(u) {
+    if (cfg.ink !== "auto" || !u || u.includes("gradient(")) { root.classList.remove("ink-dark"); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement("canvas"), W = 64, H = 40; c.width = W; c.height = H;
+        const g = c.getContext("2d");
+        // même cadrage que « background-size: cover »
+        const r = Math.max(W / img.width, H / img.height), w = img.width * r, h = img.height * r;
+        g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+        const [x0, x1, y0, y1] = cfg.pos === "center" ? [.15, .85, .25, .75] : [.02, .55, .45, .98];
+        const d = g.getImageData(Math.floor(x0 * W), Math.floor(y0 * H), Math.ceil((x1 - x0) * W), Math.ceil((y1 - y0) * H)).data;
+        let L = 0; for (let k = 0; k < d.length; k += 4) L += (.2126 * d[k] + .7152 * d[k + 1] + .0722 * d[k + 2]) / 255;
+        root.classList.toggle("ink-dark", L / (d.length / 4) > .62);
+      } catch (e) { root.classList.remove("ink-dark"); }
+    };
+    img.onerror = () => root.classList.remove("ink-dark");
+    img.src = u;
+  }
+  let current = "";
   function next() {
     const list = urls.length ? urls : SAMPLES; i = (i + 1) % list.length;
-    const v = list[i];
+    const v = current = list[i];
     [front, back] = [back, front];
     front.style.backgroundImage = v.includes("gradient(") ? v : `url("${v.replace(/"/g, "%22")}")`;
     alt = !alt; front.classList.remove("kb", "alt"); void front.offsetWidth;
     front.classList.add("kb"); front.classList.toggle("alt", alt);
     front.classList.add("show"); back.classList.remove("show");
+    caption(v); ink(v);
     clearTimeout(timer); timer = setTimeout(next, PHOTO_MS);
   }
   async function add(files) {
@@ -396,160 +521,199 @@ const Photos = (() => {
       n++;
     }
     toast(n ? `${n} photo${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""}` : "Aucune photo lisible");
-    load();
+    sig = ""; load();
   }
   async function clear() {
     if (!db || !confirm("Effacer toutes les photos de cet appareil ?")) return;
     await new Promise((res) => { const t = db.transaction("p", "readwrite"); t.objectStore("p").clear(); t.oncomplete = res; t.onerror = res; });
-    load();
+    sig = ""; load();
   }
   open().then((d) => { db = d; load(); });
-  setInterval(load, 2 * 60000);   // nouvelles photos envoyées depuis le téléphone
-  return { add, clear, next };
+  setInterval(load, 2 * 60000);   // nouvelles photos envoyées depuis le téléphone, albums de saison
+  return { add, clear, next, refresh: () => { caption(current); ink(current); } };
 })();
 
-
-/* ---------- Heure et date ---------- */
-const fmtTime = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
+/* ---------- Horloge ---------- */
 const fmtDate = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+const NUM = ["minuit", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "midi"];
+/* « Il est neuf heures et quart du soir » (arrondi à 5 minutes). */
+function inWords(d) {
+  let h = d.getHours(), m = Math.round(d.getMinutes() / 5) * 5;
+  if (m === 60) { m = 0; h = (h + 1) % 24; }
+  let minus = 0;
+  if (m > 30) { minus = 60 - m; m = 0; h = (h + 1) % 24; }
+  const special = h === 0 || h === 12, n = h % 12;
+  let s = special ? NUM[h === 0 ? 0 : 12] : `${NUM[n]} heure${n > 1 ? "s" : ""}`;
+  const MW = { 5: "cinq", 10: "dix", 20: "vingt", 25: "vingt-cinq" };
+  if (minus) s += minus === 15 ? " moins le quart" : ` moins ${MW[minus]}`;
+  else if (m === 15) s += " et quart";
+  else if (m === 30) s += special ? " et demi" : " et demie";
+  else if (m) s += ` ${MW[m]}`;
+  if (!special) s += h < 12 ? " du matin" : h < 18 ? " de l'après-midi" : " du soir";
+  return `Il est ${s}`;
+}
+/* Cadran à aiguilles */
+(() => {
+  let t = "";
+  for (let k = 0; k < 60; k++) {
+    const big = k % 5 === 0, a = k * Math.PI / 30, r1 = big ? 80 : 86, r2 = 92;
+    t += `<line class="tick${big ? " big" : ""}" stroke-width="${big ? 4 : 1.5}" x1="${100 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${100 + r2 * Math.sin(a)}" y2="${100 - r2 * Math.cos(a)}"/>`;
+  }
+  $("analog").innerHTML = `<svg viewBox="0 0 200 200" aria-hidden="true">${t}<line class="hand h" id="hh" x1="100" y1="100" x2="100" y2="52" stroke-width="9"/>`
+    + `<line class="hand m" id="hm" x1="100" y1="100" x2="100" y2="24" stroke-width="5.5"/><line class="hand s" id="hs" x1="100" y1="114" x2="100" y2="20" stroke-width="2"/><circle class="hub" cx="100" cy="100" r="5"/></svg>`;
+})();
+
+/* Rappels : bandeau 15 min avant (« École dans 12 min »), puis 5 min à l'heure dite. */
+function reminderNow(now) {
+  const m = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60, wd = now.getDay();
+  let best = null;
+  for (const r of fam.reminders || []) {
+    if (r.d === "week" && (wd === 0 || wd === 6)) continue;
+    if (r.d === "weekend" && wd > 0 && wd < 6) continue;
+    const diff = toMin(r.t) - m;
+    if (diff > 15 || diff <= -5) continue;
+    if (!best || Math.abs(diff) < Math.abs(best.diff)) best = { r, diff };
+  }
+  return best;
+}
+/* Comptes à rebours et anniversaires (jusqu'à 3, les plus proches). */
+const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+function upcoming(now) {
+  const today = dayStart(now), out = [];
+  const nextOf = (mm, dd) => { let t = new Date(today.getFullYear(), mm - 1, dd); if (t < today) t = new Date(today.getFullYear() + 1, mm - 1, dd); return t; };
+  for (const e of fam.events || []) {
+    let t;
+    if (e.y) { const [mm, dd] = e.d.slice(-5).split("-").map(Number); t = nextOf(mm, dd); }
+    else { t = new Date(e.d + "T00:00"); if (isNaN(t) || t < today) continue; }
+    const n = Math.round((t - today) / 864e5);
+    if (n <= 100) out.push({ n, html: esc(e.x) + (n === 0 ? " : c'est aujourd'hui !" : n === 1 ? " demain" : ` dans ${n} jours`), cls: n === 0 ? "now" : "" });
+  }
+  for (const b of fam.birthdays || []) {
+    const [y, mm, dd] = b.d.split("-").map(Number), t = nextOf(mm, dd), n = Math.round((t - today) / 864e5), age = t.getFullYear() - y;
+    if (n === 0) out.push({ n, html: `🎂 Joyeux anniversaire ${esc(b.x)} !${y > 1900 ? ` ${age} an${age > 1 ? "s" : ""}` : ""}`, cls: "bday" });
+    else if (n <= 30) out.push({ n, html: `🎂 ${esc(b.x)} ${n === 1 ? "demain" : `dans ${n} jours`}`, cls: "" });
+  }
+  return out.sort((a, b) => a.n - b.n).slice(0, 3);
+}
+
+let lastMin = -1;
 function tick() {
-  const now = new Date(), h = now.getHours(), d = fmtDate.format(now);
-  $("time").textContent = fmtTime.format(now);
+  const now = new Date(), h = now.getHours(), mi = now.getMinutes(), s = now.getSeconds(), m = h * 60 + mi;
+  // Heure
+  if (cfg.style === "words") $("time").textContent = inWords(now);
+  else {
+    const colon = `<span class="colon${cfg.sec === "blink" ? " blink" : ""}">:</span>`;
+    $("time").innerHTML = `${pad(h)}${colon}${pad(mi)}${cfg.sec === "on" ? `<span class="sec">${pad(s)}</span>` : ""}`;
+  }
+  if (cfg.style === "analog") {
+    $("hh").setAttribute("transform", `rotate(${(h % 12) * 30 + mi / 2} 100 100)`);
+    $("hm").setAttribute("transform", `rotate(${mi * 6 + s / 10} 100 100)`);
+    $("hs").setAttribute("transform", `rotate(${s * 6} 100 100)`);
+    $("hs").style.display = cfg.sec === "off" ? "none" : "";
+  }
+  // Nuit noire, lumière dodo, atténuation
+  const deep = cfg.deep && inRange(m, toMin(cfg.deepFrom), toMin(cfg.deepTo));
+  root.classList.toggle("deep", deep);
+  const kWake = toMin(cfg.kidWake), sleep = cfg.kid && inRange(m, toMin(cfg.kidBed), kWake), wake = cfg.kid && inRange(m, kWake, (kWake + 60) % 1440);
+  root.classList.toggle("kid-sleep", sleep && !deep); root.classList.toggle("kid-wake", wake && !deep);
+  $("kid").hidden = !(sleep || wake) || deep;
+  if (sleep) $("kid").innerHTML = `${wxIcon("moon")}C'est l'heure de dormir`;
+  if (wake) $("kid").innerHTML = `${wxIcon("sun")}Tu peux te lever !`;
+  root.style.setProperty("--dim", (cfg.night && !deep ? dimLevel(now) * cfg.dimMax / 100 : 0).toFixed(3));
+  // Rappel en cours
+  const rem = reminderNow(now);
+  if (rem) {
+    const left = Math.ceil(rem.diff);
+    $("banner").className = "banner" + (rem.diff > 0 ? " soon" : "");
+    $("banner").textContent = rem.diff > 0 ? `${rem.r.x} dans ${left} min` : `${rem.r.x} !`;
+  }
+  $("banner").hidden = !rem;
+  // Le reste change à la minute
+  if (m === lastMin) return;
+  lastMin = m;
+  const d = fmtDate.format(now);
   $("date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
-  document.documentElement.style.setProperty("--dim", (cfg.night ? dimLevel(now) * cfg.dimMax / 100 : 0).toFixed(3));
-}
-
-/* ---------- Atténuation selon la lumière ----------
-   1. Capteur de lumière de l'appareil (AmbientLightSensor) s'il est accessible : peu de lux = écran atténué.
-   2. Sinon le soleil de la ville choisie (lever / coucher donnés par Open-Meteo, 7 h 30 / 18 h 30 par défaut) :
-      baisse au crépuscule, plus forte à partir de 22 h, remontée à l'aube. La luminosité réelle de l'écran reste
-      réglée par l'appareil (sur l'Echo Show : Paramètres › Affichage › Luminosité adaptative). */
-const hm = (iso) => { const m = /T(\d\d):(\d\d)/.exec(iso || ""); return m ? +m[1] * 60 + +m[2] : null; };
-let sun = { rise: 450, set: 1110 };
-try { Object.assign(sun, JSON.parse(localStorage.getItem("homeplus-sun")) || {}); } catch (e) {}
-let lux = null, luxAt = 0;
-try {
-  if ("AmbientLightSensor" in window) {
-    const als = new AmbientLightSensor({ frequency: 0.5 });
-    als.addEventListener("reading", () => { lux = als.illuminance; luxAt = Date.now(); $("dim-src").textContent = "(capteur de lumière)"; });
-    als.addEventListener("error", () => { lux = null; });
-    als.start();
-  }
-} catch (e) {}
-const ramp = (x, a, b) => Math.min(1, Math.max(0, (x - a) / (b - a)));
-function dimLevel(now) {
-  if (lux != null && Date.now() - luxAt < 60000) return 1 - ramp(Math.log10(Math.max(lux, 1)), 0, Math.log10(150));
-  const m = now.getHours() * 60 + now.getMinutes();
-  const evening = .5 * ramp(m, sun.set - 30, sun.set + 60) + .5 * ramp(m, 22 * 60, 23 * 60);   // 0 → 1 dans la soirée
-  const morning = 1 - ramp(m, sun.rise - 60, sun.rise + 30);                                     // 1 → 0 à l'aube
-  return m < 12 * 60 ? morning : evening;
-}
-
-/* ---------- Météo (Open-Meteo : gratuit, sans clé) ---------- */
-const WX_ICONS = {
-  sun: '<circle cx="12" cy="12" r="4.2" fill="#ffd35a" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="#ffd35a"/>',
-  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="#e8ecff" stroke="none"/>',
-  partly: '<circle cx="9" cy="9" r="3.6" fill="#ffd35a" stroke="none"/><path d="M9 2.8v1.6M2.8 9h1.6M4.6 4.6l1.1 1.1M13.4 4.6l-1.1 1.1" stroke="#ffd35a"/><path d="M8.5 19a3.5 3.5 0 0 1-.4-7 5 5 0 0 1 9.6 1.4A2.9 2.9 0 0 1 17.2 19z" fill="#fff" stroke="none"/>',
-  cloud: '<path d="M7 19a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 19z" fill="#fff" stroke="none"/>',
-  rain: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5" stroke="#7cc4ff"/>',
-  snow: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8 18.5h.01M12 20h.01M16 18.5h.01" stroke="#fff" stroke-width="2.6"/>',
-  storm: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M12.5 15l-2 3.5h3l-2 3.5" stroke="#ffd35a"/>',
-  fog: '<path d="M4 9h16M6 13h12M4 17h16" stroke="#fff"/>'
-};
-const wxIcon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WX_ICONS[n]}</svg>`;
-function wxKind(code, day) {
-  if (code === 0) return [day ? "sun" : "moon", day ? "Ensoleillé" : "Dégagé"];
-  if (code <= 2) return [day ? "partly" : "cloud", "Éclaircies"];
-  if (code === 3) return ["cloud", "Couvert"];
-  if (code === 45 || code === 48) return ["fog", "Brouillard"];
-  if (code >= 51 && code <= 57) return ["rain", "Bruine"];
-  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ["rain", code >= 80 ? "Averses" : "Pluie"];
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ["snow", "Neige"];
-  if (code >= 95) return ["storm", "Orage"];
-  return ["cloud", ""];
-}
-function showWeather(w) {
-  if (!w) { $("wx").innerHTML = ""; $("wx-line").hidden = true; return; }
-  const [icon, label] = wxKind(w.code, w.day);
-  $("wx").innerHTML = `${wxIcon(icon)}<span>${Math.round(w.temp)}°</span><small>${label}${w.hi != null ? ` · ${Math.round(w.lo)}° / ${Math.round(w.hi)}°` : ""}</small>`;
-  $("wx-line").hidden = false;
-}
-async function loadWeather() {
-  if (!cfg.city) { showWeather(null); return; }
-  try {
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.city.lat}&longitude=${cfg.city.lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=1&timezone=auto`;
-    const j = await fetch(u).then((r) => r.json());
-    const w = { temp: j.current.temperature_2m, code: j.current.weather_code, day: !!j.current.is_day, hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0], at: Date.now() };
-    sun = { rise: hm(j.daily.sunrise[0]), set: hm(j.daily.sunset[0]) };
-    try { localStorage.setItem("homeplus-sun", JSON.stringify(sun)); } catch (e) {}
-    try { localStorage.setItem("homeplus-wx", JSON.stringify(w)); } catch (e) {}
-    showWeather(w);
-  } catch (e) {
-    let w = null; try { w = JSON.parse(localStorage.getItem("homeplus-wx")); } catch (e2) {}
-    showWeather(w && Date.now() - w.at < 6 * 3600e3 ? w : null);   // hors ligne : dernière météo de moins de 6 h
-  }
-}
-async function setCity(name) {
-  $("city-state").textContent = "Recherche…";
-  try {
-    const j = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=fr&name=${encodeURIComponent(name)}`).then((r) => r.json());
-    const c = j.results && j.results[0];
-    if (!c) { $("city-state").textContent = "Ville introuvable."; return; }
-    cfg.city = { name: c.name, lat: c.latitude, lon: c.longitude }; save();
-    $("city").value = c.name; $("city-state").textContent = `Météo de ${c.name}${c.admin1 ? ", " + c.admin1 : ""}.`;
-    loadWeather();
-  } catch (e) { $("city-state").textContent = "Pas de connexion à Internet."; }
+  const f = fete(now);
+  $("fete").textContent = f.startsWith("!") ? f.slice(1) : `On fête les ${f}`;
+  $("fete").hidden = !cfg.fete;
+  const up = upcoming(now);
+  $("chips").innerHTML = up.map((u) => `<span class="chip ${u.cls}">${u.html}</span>`).join("");
+  $("chips").hidden = !up.length;
 }
 
 /* ---------- Réglages ---------- */
+const SEGS = { style: "style", pos: "pos", sec: "sec", ink: "ink", every: "every" };
+const SWITCHES = { fcsw: "forecast", fetesw: "fete", capsw: "caption", nightsw: "night", deepsw: "deep", kidsw: "kid", lite: "lite" };
 function apply() {
-  const root = document.documentElement;
-  root.dataset.pos = cfg.pos;
-  root.classList.toggle("noplate", !cfg.plate);
+  root.dataset.style = cfg.style; root.dataset.pos = cfg.pos;
   root.classList.toggle("lite", !!cfg.lite);
-  root.style.setProperty("--g-v", (cfg.glass / 100).toFixed(2));
+  if (cfg.ink !== "auto") root.classList.remove("ink-dark");
   PHOTO_MS = cfg.every * 1000;
-  LiquidGlass.setGain(1.4 - cfg.glass / 100 * .7);
-  $("pos").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === cfg.pos)));
-  $("every").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.v === cfg.every)));
-  $("plate").setAttribute("aria-checked", String(!!cfg.plate));
-  $("nightsw").setAttribute("aria-checked", String(!!cfg.night));
+  for (const [id, k] of Object.entries(SEGS)) $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(cfg[k]))));
+  for (const [id, k] of Object.entries(SWITCHES)) $(id).setAttribute("aria-checked", String(!!cfg[k]));
   $("dimmax").value = cfg.dimMax; $("dim-field").hidden = !cfg.night;
-  $("lite").setAttribute("aria-checked", String(!!cfg.lite));
-  $("glass").value = cfg.glass; $("glass-field").hidden = !cfg.plate;
-  tick();
+  $("deep-from").value = cfg.deepFrom; $("deep-to").value = cfg.deepTo; $("deep-field").hidden = !cfg.deep;
+  $("kid-bed").value = cfg.kidBed; $("kid-wake").value = cfg.kidWake; $("kid-field").hidden = !cfg.kid;
+  lastMin = -1; tick(); showWeather(); Photos.refresh();
 }
-$("pos").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { cfg.pos = b.dataset.v; save(); apply(); } });
-$("every").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { cfg.every = +b.dataset.v; save(); apply(); Photos.next(); } });
-$("plate").addEventListener("click", () => { cfg.plate = !cfg.plate; save(); apply(); });
-$("nightsw").addEventListener("click", () => { cfg.night = !cfg.night; save(); apply(); });
+for (const [id, k] of Object.entries(SEGS)) $(id).addEventListener("click", (e) => {
+  const b = e.target.closest("[data-v]"); if (!b) return;
+  cfg[k] = k === "every" ? +b.dataset.v : b.dataset.v; save(); apply(); if (k === "every") Photos.next();
+});
+for (const [id, k] of Object.entries(SWITCHES)) $(id).addEventListener("click", () => { cfg[k] = !cfg[k]; save(); apply(); });
 $("dimmax").addEventListener("input", (e) => { cfg.dimMax = +e.target.value; apply(); clearTimeout(apply.d); apply.d = setTimeout(save, 300); });
-$("lite").addEventListener("click", () => { cfg.lite = !cfg.lite; save(); apply(); });
-$("glass").addEventListener("input", (e) => { cfg.glass = +e.target.value; apply(); clearTimeout(apply.t); apply.t = setTimeout(save, 300); });
+for (const [id, k] of [["deep-from", "deepFrom"], ["deep-to", "deepTo"], ["kid-bed", "kidBed"], ["kid-wake", "kidWake"]])
+  $(id).addEventListener("change", (e) => { if (e.target.value) { cfg[k] = e.target.value; save(); apply(); } });
 $("city-ok").addEventListener("click", () => { const v = $("city").value.trim(); if (v) setCity(v); });
 $("city").addEventListener("keydown", (e) => { if (e.key === "Enter") $("city-ok").click(); });
 $("clear").addEventListener("click", () => Photos.clear());
 $("set-close").addEventListener("click", () => $("settings").close());
 $("settings").addEventListener("click", (e) => { if (e.target === $("settings")) $("settings").close(); });
-$("set-btn").addEventListener("click", () => {
+function openSettings() {
   $("city").value = cfg.city ? cfg.city.name : ""; $("city-state").textContent = cfg.city ? "" : "Choisis une ville pour afficher la météo.";
   try { $("settings").showModal(); } catch (e) { $("settings").setAttribute("open", ""); }
+}
+$("set-btn").addEventListener("click", openSettings);
+if (NATIVE) { $("android").hidden = false; $("android").addEventListener("click", () => NATIVE.openSettings("home")); }
+
+/* Famille : listes modifiables */
+const DAYSET = { all: "tous les jours", week: "lun – ven", weekend: "week-end" };
+const frDate = (iso, year = true) => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1].toLowerCase()}${year && y > 1900 ? " " + y : ""}`; };
+function renderFam() {
+  $("fam-where").textContent = SERVER ? "Partagé par le serveur de la maison : modifiable aussi depuis l'iPhone." : "Gardé sur cet appareil.";
+  const row = (txt, list, k) => `<li><span>${txt}</span><button data-list="${list}" data-k="${k}" aria-label="Supprimer">×</button></li>`;
+  $("rem-list").innerHTML = (fam.reminders || []).map((r, k) => row(`<b>${esc(r.t)}</b> · ${esc(r.x)} <small>(${DAYSET[r.d] || ""})</small>`, "reminders", k)).join("");
+  $("ev-list").innerHTML = (fam.events || []).map((e, k) => row(`${esc(e.x)} · ${e.y ? frDate("2000-" + e.d.slice(-5), false) + " <small>(chaque année)</small>" : frDate(e.d)}`, "events", k)).join("");
+  $("bd-list").innerHTML = (fam.birthdays || []).map((b, k) => row(`${esc(b.x)} · ${frDate(b.d)}`, "birthdays", k)).join("");
+}
+$("settings").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-list]"); if (!b) return;
+  fam[b.dataset.list].splice(+b.dataset.k, 1); saveFam();
 });
-/* Page servie par tools/serveur.py : afficher l'adresse d'envoi pour l'iPhone. */
+$("rem-add").addEventListener("click", () => {
+  const t = $("rem-t").value, x = $("rem-x").value.trim(); if (!t || !x) { toast("Indique l'heure et le texte du rappel"); return; }
+  fam.reminders.push({ t, x, d: $("rem-d").value }); fam.reminders.sort((a, b) => toMin(a.t) - toMin(b.t)); $("rem-x").value = ""; saveFam();
+});
+$("ev-add").addEventListener("click", () => {
+  const d = $("ev-d").value, x = $("ev-x").value.trim(); if (!d || !x) { toast("Indique la date et le nom"); return; }
+  const y = $("ev-y").checked; fam.events.push({ d: y ? d.slice(5) : d, x, y }); $("ev-x").value = ""; saveFam();
+});
+$("bd-add").addEventListener("click", () => {
+  const d = $("bd-d").value, x = $("bd-x").value.trim(); if (!d || !x) { toast("Indique la date de naissance et le prénom"); return; }
+  fam.birthdays.push({ d, x }); $("bd-x").value = ""; saveFam();
+});
+
+/* Page servie par le serveur de la maison : rappeler l'adresse d'envoi pour l'iPhone. */
 fetch("photos/photos.json", { cache: "no-store" }).then((r) => {
   if (!r.ok || !/json/.test(r.headers.get("content-type") || "")) return;
   $("send-url").textContent = new URL("envoyer", location.href).href; $("send-field").hidden = false;
 }).catch(() => {});
-if (NATIVE) { $("android").hidden = false; $("android").addEventListener("click", () => NATIVE.openSettings("home")); }
 
-/* Toucher l'écran : les boutons apparaissent quelques secondes. */
+/* Toucher l'écran : les boutons apparaissent quelques secondes ; le premier toucher passe en plein écran. */
 let toolsTimer;
 function showTools() { $("tools").classList.add("on"); clearTimeout(toolsTimer); toolsTimer = setTimeout(() => $("tools").classList.remove("on"), 7000); }
 document.addEventListener("pointerdown", (e) => { if (!e.target.closest("dialog")) showTools(); }, { passive: true });
 $("ph-file").addEventListener("change", (e) => { Photos.add([...e.target.files]); e.target.value = ""; });
-
-/* Plein écran (cache la barre d'adresse du navigateur, ex. Silk sur Echo Show) : demandé au premier toucher,
-   car un navigateur n'accepte le plein écran qu'après un geste. Inutile dans l'APK, déjà en plein écran. */
 function goFullscreen() {
   if (NATIVE || document.fullscreenElement || document.webkitFullscreenElement) return;
   const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -557,7 +721,7 @@ function goFullscreen() {
 }
 document.addEventListener("pointerup", (e) => { if (!e.target.closest("dialog, .tools")) goFullscreen(); }, { passive: true });
 
-/* Garder l'écran allumé (Wake Lock), et le redemander quand la page revient au premier plan. */
+/* Garder l'écran allumé (Wake Lock). */
 let wakeLock = null;
 async function keepAwake() {
   if (!("wakeLock" in navigator) || document.visibilityState !== "visible") return;
@@ -565,7 +729,6 @@ async function keepAwake() {
 }
 document.addEventListener("visibilitychange", keepAwake);
 document.addEventListener("pointerup", () => { if (!wakeLock || wakeLock.released) keepAwake(); }, { passive: true });
-keepAwake();
 
 /* Boutons Retour et Accueil de l'APK Android */
 const closeDialogs = () => document.querySelectorAll("dialog[open]").forEach((d) => d.close());
@@ -574,10 +737,13 @@ window.addEventListener("prisme-home", closeDialogs);
 window.addEventListener("prisme-resume", loadWeather);
 
 /* ---------- Démarrage ---------- */
-apply();
-tick(); setInterval(tick, 1000);
+apply(); setInterval(tick, 1000);
+try { const w = JSON.parse(localStorage.getItem("homeplus-wx")); if (w && Date.now() - w.at < 6 * 3600e3) { wx = w; showWeather(); } } catch (e) {}
 loadWeather(); setInterval(loadWeather, 30 * 60000);
-if (!cfg.city) setTimeout(() => toast("Touche l'écran puis « Réglages » pour choisir la ville de la météo"), 1500);
+loadFam(); setInterval(loadFam, 2 * 60000);
+keepAwake();
+if (/[?&]reglages\b/.test(location.search)) openSettings();
+else if (!cfg.city) setTimeout(() => toast("Touche l'écran puis « Réglages » pour choisir la ville de la météo"), 1500);
 </script>
 </body>
 </html>
