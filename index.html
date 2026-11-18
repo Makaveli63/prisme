@@ -17,7 +17,8 @@
 :root {
   --bg: #eef1f7; --text: #0d1220; --muted: #737a8c; --line: rgba(120, 130, 155, .18);
   --tint: #2f7bf5; --star: #f5b301; --danger: #ff3b30;
-  --glass: rgba(255, 255, 255, .58); --glass-strong: rgba(255, 255, 255, .78);
+  --glass: rgba(255, 255, 255, .26); --glass-dock: rgba(255, 255, 255, .4); --glass-strong: rgba(255, 255, 255, .78);
+  --rim: rgba(255, 255, 255, .95); --rim-2: rgba(255, 255, 255, .5); --glow: rgba(255, 255, 255, .45); --knob: rgba(255, 255, 255, .62); --card: rgba(255, 255, 255, .34);
   --glass-edge: rgba(255, 255, 255, .85); --glass-edge-2: rgba(255, 255, 255, .25);
   --glass-shadow: 0 10px 30px rgba(30, 45, 90, .12), 0 1px 3px rgba(30, 45, 90, .08);
   --press: rgba(120, 130, 160, .14); --sel: rgba(47, 123, 245, .12);
@@ -30,7 +31,8 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0b0d13; --text: #f1f3f8; --muted: #8c93a5; --line: rgba(255, 255, 255, .08);
-    --tint: #4b93ff; --glass: rgba(40, 44, 58, .5); --glass-strong: rgba(36, 40, 54, .78);
+    --tint: #4b93ff; --glass: rgba(255, 255, 255, .06); --glass-dock: rgba(30, 34, 46, .45); --glass-strong: rgba(36, 40, 54, .8);
+    --rim: rgba(255, 255, 255, .42); --rim-2: rgba(255, 255, 255, .14); --glow: rgba(255, 255, 255, .06); --knob: rgba(255, 255, 255, .16); --card: rgba(255, 255, 255, .05);
     --glass-edge: rgba(255, 255, 255, .22); --glass-edge-2: rgba(255, 255, 255, .04);
     --glass-shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
     --press: rgba(255, 255, 255, .08); --sel: rgba(75, 147, 255, .18); --fade: rgba(11, 13, 19, .85);
@@ -40,7 +42,8 @@
 }
 :root[data-theme="dark"] {
   --bg: #0b0d13; --text: #f1f3f8; --muted: #8c93a5; --line: rgba(255, 255, 255, .08);
-  --tint: #4b93ff; --glass: rgba(40, 44, 58, .5); --glass-strong: rgba(36, 40, 54, .78);
+  --tint: #4b93ff; --glass: rgba(255, 255, 255, .06); --glass-dock: rgba(30, 34, 46, .45); --glass-strong: rgba(36, 40, 54, .8);
+    --rim: rgba(255, 255, 255, .42); --rim-2: rgba(255, 255, 255, .14); --glow: rgba(255, 255, 255, .06); --knob: rgba(255, 255, 255, .16); --card: rgba(255, 255, 255, .05);
   --glass-edge: rgba(255, 255, 255, .22); --glass-edge-2: rgba(255, 255, 255, .04);
   --glass-shadow: 0 10px 30px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
   --press: rgba(255, 255, 255, .08); --sel: rgba(75, 147, 255, .18); --fade: rgba(11, 13, 19, .85);
@@ -49,16 +52,16 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
-html, body { height: 100%; margin: 0; }
+html, body { height: 100%; margin: 0; background: var(--bg); }
 body { background: var(--bg); color: var(--text); font: 16px/1.4 var(--font); -webkit-font-smoothing: antialiased; overflow: hidden; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 input { font: inherit; color: inherit; }
 svg { width: 22px; height: 22px; flex: none; }
 
 /* ---------- Ambient background ---------- */
-.blobs { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.blobs { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
 .blobs i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .75; animation: drift 26s ease-in-out infinite alternate; }
-.blobs i:nth-child(1) { width: 55vmax; height: 55vmax; background: var(--b1); left: -15vmax; top: -18vmax; }
+.blobs i:nth-child(1) { width: 55vmax; height: 55vmax; background: var(--b1); left: -20vmax; top: 18vh; }
 .blobs i:nth-child(2) { width: 45vmax; height: 45vmax; background: var(--b2); right: -15vmax; top: 20vh; animation-duration: 32s; }
 .blobs i:nth-child(3) { width: 50vmax; height: 50vmax; background: var(--b3); left: 10vw; bottom: -25vmax; animation-duration: 38s; }
 .blobs i:nth-child(4) { width: 30vmax; height: 30vmax; background: var(--b4); right: 25vw; bottom: 5vh; animation-duration: 29s; opacity: .5; }
@@ -67,17 +70,26 @@ svg { width: 22px; height: 22px; flex: none; }
 
 /* ---------- Liquid glass material ---------- */
 .glass {
-  position: relative; background: var(--glass);
-  -webkit-backdrop-filter: blur(22px) saturate(190%); backdrop-filter: blur(22px) saturate(190%);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 var(--glass-edge-2), inset 0 0 0 .5px var(--glass-edge-2);
+  position: relative; isolation: isolate; background: var(--glass);
+  -webkit-backdrop-filter: blur(12px) saturate(210%) brightness(1.06); backdrop-filter: blur(12px) saturate(210%) brightness(1.06);
+  box-shadow:
+    0 12px 32px rgba(20, 30, 70, .14), 0 2px 8px rgba(20, 30, 70, .08),
+    inset 1.5px 1.5px 1px -1px var(--rim), inset -1.5px -1.5px 1px -1px var(--rim-2),
+    inset 0 0 16px var(--glow);
 }
-.glass::after { /* specular sheen */
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(160deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, .12));
-  mix-blend-mode: soft-light;
+.glass::before { /* refracted rim: bright top-left and bottom-right edges */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: 1;
+  background: linear-gradient(135deg, var(--rim), rgba(255, 255, 255, .08) 32%, rgba(255, 255, 255, 0) 55%, var(--rim-2) 85%, var(--rim));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
-.gbtn { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), background .2s; }
-.gbtn:active { transform: scale(.9); }
+.glass::after { /* specular highlight */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(120% 70% at 25% 0%, rgba(255, 255, 255, .32), rgba(255, 255, 255, 0) 60%),
+              radial-gradient(80% 50% at 85% 110%, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 70%);
+}
+.gbtn { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; transition: transform .35s cubic-bezier(.34, 1.7, .5, 1), filter .2s; }
+.gbtn:active { transform: scale(1.12); filter: brightness(1.08); }
 .gbtn svg { width: 24px; height: 24px; }
 .gbtn:disabled { opacity: .4; pointer-events: none; }
 .gbtn.tinted { background: var(--tint); color: #fff; }
@@ -132,6 +144,7 @@ svg { width: 22px; height: 22px; flex: none; }
 .search input { flex: 1; border: 0; background: none; outline: none; padding: 12px 0; font-size: 16px; min-width: 0; }
 #items { list-style: none; margin: 0; padding: 0 12px; }
 .day { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 16px 10px 8px; }
+.card.glass { background: var(--card); }
 .card { display: flex; gap: 12px; padding: 14px; margin-bottom: 10px; border-radius: 22px; cursor: pointer; transition: transform .2s cubic-bezier(.3, 1.4, .5, 1); }
 .card:active { transform: scale(.98); }
 .card.active { outline: 2px solid var(--tint); outline-offset: -2px; }
@@ -150,10 +163,12 @@ svg { width: 22px; height: 22px; flex: none; }
 .more { display: block; margin: 10px auto; padding: 10px 18px; border-radius: 99px; font-weight: 600; }
 
 /* ---------- Floating pill (filters / reader toolbar) ---------- */
-.pill.glass { background: var(--glass-strong); }
+.pill.glass { background: var(--glass-dock); }
 .pill { position: absolute; z-index: 6; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 99px; }
-.pill button { height: 46px; min-width: 52px; padding: 0 14px; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-weight: 600; font-size: 17px; transition: background .25s, color .25s; }
-.pill button.on { background: var(--press); color: var(--text); }
+.pill button { height: 46px; min-width: 52px; padding: 0 14px; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 7px; color: var(--muted); font-weight: 600; font-size: 16px; white-space: nowrap; position: relative; z-index: 2; transition: color .3s, transform .3s cubic-bezier(.34, 1.7, .5, 1); }
+.pill button:active { transform: scale(1.1); }
+.pill button.on { color: var(--text); }
+.pill .ind { position: absolute; z-index: 1; top: 6px; bottom: 6px; left: 6px; width: 0; border-radius: 99px; background: var(--knob); box-shadow: 0 2px 8px rgba(20, 30, 70, .12), inset 1px 1px 1px -.5px var(--rim), inset -1px -1px 1px -.5px var(--rim-2); transition: left .5s cubic-bezier(.34, 1.45, .5, 1), width .5s cubic-bezier(.34, 1.45, .5, 1); pointer-events: none; }
 .pill button .lbl { display: none; }
 .pill button.on .lbl { display: inline; }
 .pill button:disabled { opacity: .35; }
@@ -719,7 +734,11 @@ function renderFilters() {
   const f = S.settings.filter;
   const html = [['starred', 'i-star-f', 'Favoris'], ['unread', 'i-dot', 'Non lus'], ['all', 'i-lines', 'Tout']]
     .map(([v, ic, l]) => `<button data-filter="${v}" class="${f === v ? 'on' : ''}" title="${l}">${icon(ic)}<span class="lbl">${l}</span></button>`).join('');
-  $$('.filter').forEach(p => p.innerHTML = html);
+  $$('.filter').forEach(p => p.innerHTML = html + '<span class="ind"></span>');
+  requestAnimationFrame(moveInd);
+}
+function moveInd() {
+  $$('.filter').forEach(p => { const on = p.querySelector('.on'), ind = p.querySelector('.ind'); if (on && ind) { ind.style.left = on.offsetLeft + 'px'; ind.style.width = on.offsetWidth + 'px'; } });
 }
 function renderSources() {
   const counts = {}; let total = 0;
@@ -892,7 +911,7 @@ document.addEventListener('click', e => {
   const tog = t.closest('.folder .chev');
   if (tog) { const n = t.closest('.folder').dataset.sel.slice(7); S.settings.collapsed[n] = !S.settings.collapsed[n]; save(); renderSources(); return; }
   const fl = t.closest('[data-filter]');
-  if (fl) { S.settings.filter = fl.dataset.filter; save(); renderFilters(); renderSources(); renderList(false); return; }
+  if (fl) { S.settings.filter = fl.dataset.filter; save(); $$('[data-filter]').forEach(b => b.classList.toggle('on', b.dataset.filter === S.settings.filter)); requestAnimationFrame(moveInd); renderSources(); renderList(false); return; }
   const s = t.closest('[data-sel]');
   if (s) { const [type, ...rest] = s.dataset.sel.split(':'); select(type, rest.join(':')); return; }
   const card = t.closest('.card');
@@ -1030,6 +1049,7 @@ document.addEventListener('touchend', e => {
   if (S.settings.lastSel) sel = S.settings.lastSel;
   if (sel.type === 'feed' && !feedById(sel.id)) sel = { type: 'smart', id: 'all' };
   applyTheme(); renderAll();
+  addEventListener('resize', moveInd); if (document.fonts) document.fonts.ready.then(moveInd);
   setView(isMobile() ? 'sources' : 'list');
   if (!S.settings.lastRefresh || Date.now() - S.settings.lastRefresh > 10 * 60 * 1000) refreshAll();
   setInterval(() => { if (!document.hidden) refreshAll(); }, 15 * 60 * 1000);

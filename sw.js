@@ -1,4 +1,4 @@
-const CACHE = 'prisme-v1';
+const CACHE = 'prisme-v2';
 const SHELL = ['./', './index.html', './icon.svg', './manifest.webmanifest', './icon-180.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
