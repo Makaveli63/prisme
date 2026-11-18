@@ -156,6 +156,37 @@ svg { width: 1.5rem; height: 1.5rem; flex: none; }
 .dots button { width: .55rem; height: .55rem; border-radius: 99px; background: var(--muted); opacity: .45; transition: width .45s var(--spring), opacity .3s, background .3s; }
 .dots button[aria-current="true"] { width: 1.5rem; opacity: 1; background: var(--text); }
 
+/* Cadran Photos : diaporama plein écran + heure en verre (comme le cadran Photos de HomeView).
+   En mode cadre (?cadre dans l'adresse, ou Apparence), c'est le seul cadran : pas de dock, pas d'applis. */
+.face-photo { position: relative; padding: 0; }
+.ph-stage { position: absolute; inset: 0 1.6rem; border-radius: 2.4rem; overflow: hidden; background: #0b0d13; box-shadow: var(--g-shadow); }
+.ph-slide { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.8s ease; }
+.ph-slide.show { opacity: 1; }
+.ph-slide.kb { animation: kenburns 20s ease-out both; }
+.ph-slide.kb.alt { animation-name: kenburns2; }
+@keyframes kenburns { from { transform: scale(1.12) translate(1.5%, 1%); } to { transform: scale(1) translate(0, 0); } }
+@keyframes kenburns2 { from { transform: scale(1) translate(-1%, 0); } to { transform: scale(1.12) translate(1%, -1.5%); } }
+:root.lite .ph-slide.kb { animation: none; }
+.ph-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, 0) 45%); }
+.ph-clock { position: absolute; left: 2.6rem; bottom: 2.4rem; padding: 1rem 1.8rem 1.1rem; border-radius: 2rem; color: #fff; text-align: left;
+  --g-fill: rgba(255, 255, 255, .1); --g-fill-hi: rgba(255, 255, 255, .2); --g-rim: rgba(255, 255, 255, .7); --g-rim-lo: rgba(255, 255, 255, .25); --g-blur: 14px; }
+.ph-time { font-size: 6.2rem; line-height: .95; font-weight: 700; letter-spacing: -.045em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 20px rgba(0, 0, 0, .25); }
+.ph-meta { margin-top: .35rem; font-size: 1.25rem; font-weight: 600; opacity: .9; display: flex; gap: .8rem; align-items: center; }
+.ph-meta svg { width: 1.4rem; height: 1.4rem; }
+.ph-tools { position: absolute; right: 2.6rem; top: 1.4rem; display: flex; gap: .6rem; opacity: 0; transition: opacity .4s; pointer-events: none; }
+.ph-tools.on { opacity: 1; pointer-events: auto; }
+.ph-tools .btn { color: #fff; background: rgba(255, 255, 255, .16); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .35); }
+.ph-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: rgba(255, 255, 255, .85); font-size: 1.1rem; gap: .5rem; pointer-events: none; }
+.ph-dim { position: absolute; inset: 0; pointer-events: none; background: rgba(20, 8, 0, .55); mix-blend-mode: multiply; opacity: 0; transition: opacity 2s; }
+.face-photo.night .ph-dim { opacity: 1; }
+:root.far .ph-time { font-size: 8rem; }
+:root.cadre .dock, :root.cadre .dots, :root.cadre .face:not(.face-photo) { display: none; }
+:root.cadre .faces { margin-bottom: 0; padding-bottom: 0; }
+:root.cadre .app { padding: 0; grid-template-rows: minmax(0, 1fr); }
+:root.cadre .faces { margin: 0; padding: 0; }
+:root.cadre .ph-stage { inset: 0; border-radius: 0; }
+:root.cadre .ambient { display: none !important; }
+
 /* Cadran Horloge : lisible de loin */
 .face-clock { display: grid; grid-template-rows: 1fr auto; align-items: center; justify-items: center; text-align: center; padding-bottom: .6rem; }
 .fc-main { display: grid; gap: .4rem; justify-items: center; }
@@ -196,6 +227,7 @@ svg { width: 1.5rem; height: 1.5rem; flex: none; }
 .app, .head, .clock, .tile, .tile .name, .fc-time, .complications, .pl-info h2 { transition: transform .7s var(--spring), font-size .6s, opacity .5s; }
 .hint, .status, .tile .state, .pinfo span, .tools .round, .dock, .dots, .rooms, .scenes, .card .row, .transport, .pl-ctrl, .pl-times { transition: opacity .5s; }
 :root.far .app { pointer-events: none; }
+:root.far .ph-tools { opacity: 0; }
 :root.far .hint, :root.far .status, :root.far .tile .state, :root.far .tools .round, :root.far .dock, :root.far .dots, :root.far .card .row, :root.far .transport, :root.far .pl-ctrl, :root.far .pl-times { opacity: 0; }
 :root.far .scenes, :root.far .rooms { opacity: .35; }
 :root.far .clock { font-size: 6.4rem; }
@@ -453,6 +485,22 @@ dialog .row { justify-content: space-between; }
 
  </div>
 
+ <section class="face face-photo" id="face-photo" aria-label="Photos" data-name="Photos">
+  <div class="ph-stage" id="ph-stage">
+   <div class="ph-slide" id="ph-a"></div><div class="ph-slide" id="ph-b"></div>
+   <div class="ph-shade"></div>
+   <div class="ph-empty" id="ph-empty" hidden><strong>Ajoute tes photos</strong><span>Touche l'écran puis « Ajouter des photos ». Elles restent sur cet appareil.</span></div>
+   <div class="ph-dim"></div>
+   <div class="ph-clock glass"><div class="ph-time" id="ph-time">--:--</div><div class="ph-meta" id="ph-meta"></div></div>
+   <div class="ph-tools" id="ph-tools">
+    <label class="btn" for="ph-file">Ajouter des photos</label>
+    <button class="btn" id="ph-clear">Tout effacer</button>
+    <button class="btn" id="ph-look">Apparence</button>
+   </div>
+   <input type="file" id="ph-file" accept="image/*" multiple hidden>
+  </div>
+ </section>
+
  <section class="face face-clock" id="face-clock" aria-label="Horloge" data-name="Horloge">
   <div class="fc-main">
    <div class="fc-date" id="fc-date"></div>
@@ -494,6 +542,7 @@ dialog .row { justify-content: space-between; }
   <div class="switch-row"><span id="look-tinted-label">Verre teinté</span><button class="switch" id="look-tinted" role="switch" aria-labelledby="look-tinted-label"></button></div>
   <div class="swatches" id="look-tint" role="group" aria-label="Couleur d'accent"></div>
   <div class="switch-row"><span id="look-lite-label">Mode léger <small style="color:var(--muted);font-weight:500">(appareil peu puissant)</small></span><button class="switch" id="look-lite" role="switch" aria-labelledby="look-lite-label"></button></div>
+  <div class="switch-row"><span id="look-cadre-label">Mode cadre photo <small style="color:var(--muted);font-weight:500">(heure + photos, sans applis)</small></span><button class="switch" id="look-cadre" role="switch" aria-labelledby="look-cadre-label"></button></div>
   <div class="row" style="justify-content:flex-end"><button class="btn primary" id="look-close">Terminé</button></div>
 </dialog>
 
@@ -543,7 +592,8 @@ const USER = "Mathieu";
 const WEATHER = { temp: 15, label: "Nuageux", hi: 17, lo: 9 };
 const ROOMS = ["Tout", "Salon", "Bureau", "Atelier", "Chambre"];
 const IDLE_MS = 120000;
-const FAR_MS = 30000;       // sans toucher l'écran : vue « de loin » (textes agrandis, détails masqués)
+const FAR_MS = 30000;
+const PHOTO_MS = 15000;     // durée de chaque photo du diaporama       // sans toucher l'écran : vue « de loin » (textes agrandis, détails masqués)
 
 const DEVICES = [
   { id: "l1", name: "Lumière salon",   room: "Salon",   type: "light",  on: true,  level: 70 },
@@ -709,6 +759,9 @@ function tick() {
   $("clock").textContent = t;
   $("date").textContent = d;
   $("fc-time").textContent = t; $("fc-date").textContent = d;
+  $("ph-time").textContent = t;
+  $("ph-meta").innerHTML = `<span>${d}</span><span>·</span>${ic("cloud")}<span>${WEATHER.temp}°</span>`;
+  $("face-photo").classList.toggle("night", h >= 22 || h < 7);
   ambientTick(now, d);
   const g = h < 5 ? "Bonne nuit" : h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
   $("hello").textContent = `${g}, ${USER}`;
@@ -814,7 +867,7 @@ function showDots() { $("dots").querySelectorAll("button").forEach((b, i) => b.s
 function goFace(i, smooth = true) {
   faceIdx = i; showDots();
   $("faces").scrollTo({ left: faceEls[i].offsetLeft - faceEls[0].offsetLeft, behavior: smooth ? "smooth" : "auto" });
-  try { localStorage.setItem("prisme-face", String(i)); } catch (e) {}
+  if (!document.documentElement.classList.contains("cadre")) try { localStorage.setItem("prisme-face", String(i)); } catch (e) {}
 }
 $("dots").addEventListener("click", (e) => { const b = e.target.closest("[data-face]"); if (b) goFace(+b.dataset.face); });
 let faceScroll = 0;
@@ -826,6 +879,105 @@ $("faces").addEventListener("scroll", () => {
   });
 }, { passive: true });
 window.addEventListener("resize", () => goFace(faceIdx, false));
+
+/* ---------- Photos (diaporama) ----------
+   Deux sources, cumulées :
+   - les photos ajoutées depuis l'appareil, réduites (2000 px max) et gardées dans IndexedDB, sur cet appareil seulement ;
+   - un dossier « photos/ » servi à côté de la page (liste de fichiers du serveur, ou photos/photos.json = tableau d'adresses),
+     ou l'adresse donnée par ?photos=… ; relu toutes les 30 min. Utile sur un Echo Show, qui n'a pas de galerie.
+   Rien n'est envoyé ni mis dans le dépôt (photos/ est ignoré par git). Sans photo, des fonds dégradés servent d'exemple. */
+const Photos = (() => {
+  const SAMPLES = [
+    "radial-gradient(circle at 20% 25%, #8fd3ff, transparent 55%), radial-gradient(circle at 80% 80%, #ff9a6b, transparent 55%), linear-gradient(135deg, #2b3cff, #9b3cf0)",
+    "radial-gradient(circle at 75% 20%, #ffd36b, transparent 50%), radial-gradient(circle at 15% 85%, #ff6bb5, transparent 55%), linear-gradient(160deg, #ff7a3c, #7b2cbf)",
+    "radial-gradient(circle at 30% 70%, #6bffc8, transparent 55%), radial-gradient(circle at 85% 30%, #6bb8ff, transparent 50%), linear-gradient(200deg, #0f6b5c, #1d2b7a)"
+  ];
+  let urls = [], i = -1, timer = 0, front = $("ph-a"), back = $("ph-b"), db = null, alt = false;
+  const open = () => new Promise((res) => {
+    try {
+      const r = indexedDB.open("prisme-photos", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("p", { autoIncrement: true });
+      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+  const all = () => new Promise((res) => {
+    if (!db) return res([]);
+    const out = [], c = db.transaction("p").objectStore("p").openCursor();
+    c.onsuccess = () => { const k = c.result; if (k) { out.push(k.value); k.continue(); } else res(out); };
+    c.onerror = () => res([]);
+  });
+  const shrink = (file) => new Promise((res) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 2000 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+      c.toBlob((b) => res(b), "image/jpeg", .86);
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); res(null); };
+    img.src = u;
+  });
+  const IMG = /\.(jpe?g|png|webp|gif|avif)$/i;
+  async function remote() {
+    const src = new URLSearchParams(location.search).get("photos") || "photos/";
+    for (const u of src.endsWith("/") ? [src + "photos.json", src] : [src]) {
+      try {
+        const r = await fetch(u, { cache: "no-store" }); if (!r.ok) continue;
+        const text = await r.text(), base = new URL(u, location.href);
+        if (/^\s*\[/.test(text)) return JSON.parse(text).map((x) => new URL(x, base).href);
+        const links = [...new DOMParser().parseFromString(text, "text/html").querySelectorAll("a[href]")].map((a) => a.getAttribute("href"));
+        const imgs = links.filter((h) => IMG.test(h.split("?")[0])).map((h) => new URL(h, base).href);
+        if (imgs.length) return imgs;
+      } catch (e) {}
+    }
+    return [];
+  }
+  async function load() {
+    urls.forEach((u) => u.startsWith("blob:") && URL.revokeObjectURL(u));
+    const blobs = await all();
+    urls = blobs.map((b) => URL.createObjectURL(b)).concat(await remote());
+    for (let k = urls.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [urls[k], urls[j]] = [urls[j], urls[k]]; }
+    $("ph-empty").hidden = urls.length > 0;
+    i = -1; next();
+  }
+  function next() {
+    const list = urls.length ? urls : SAMPLES; i = (i + 1) % list.length;
+    const v = list[i];
+    [front, back] = [back, front];
+    front.style.backgroundImage = v.includes("gradient(") ? v : `url("${v.replace(/"/g, "%22")}")`;
+    alt = !alt; front.classList.remove("kb", "alt"); void front.offsetWidth;
+    front.classList.add("kb"); front.classList.toggle("alt", alt);
+    front.classList.add("show"); back.classList.remove("show");
+    clearTimeout(timer); timer = setTimeout(next, PHOTO_MS);
+  }
+  async function add(files) {
+    if (!db) { toast("Stockage indisponible sur ce navigateur"); return; }
+    let n = 0;
+    for (const f of files) {
+      const b = await shrink(f); if (!b) continue;
+      await new Promise((res) => { const t = db.transaction("p", "readwrite"); t.objectStore("p").add(b); t.oncomplete = res; t.onerror = res; });
+      n++;
+    }
+    toast(n ? `${n} photo${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""}` : "Aucune photo lisible");
+    load();
+  }
+  async function clear() {
+    if (!db || !confirm("Effacer toutes les photos de cet appareil ?")) return;
+    await new Promise((res) => { const t = db.transaction("p", "readwrite"); t.objectStore("p").clear(); t.oncomplete = res; t.onerror = res; });
+    load();
+  }
+  open().then((d) => { db = d; load(); });
+  setInterval(load, 30 * 60000);
+  return { add, clear, next };
+})();
+$("ph-file").addEventListener("change", (e) => { Photos.add([...e.target.files]); e.target.value = ""; });
+$("ph-clear").addEventListener("click", () => Photos.clear());
+$("ph-look").addEventListener("click", () => $("btn-theme").click());
+let phTools = 0;
+$("ph-stage").addEventListener("click", (e) => {
+  if (e.target.closest(".ph-tools")) return;
+  $("ph-tools").classList.add("on"); clearTimeout(phTools); phTools = setTimeout(() => $("ph-tools").classList.remove("on"), 6000);
+});
 
 /* ---------- Vue de loin / de près ---------- */
 let farTimer;
@@ -959,8 +1111,9 @@ window.addEventListener("prisme-home", () => { closeDialogs(); wake(); nearNow()
 window.addEventListener("prisme-resume", () => { refreshInstalled(); renderDock(); if ($("drawer").open) renderDrawer(); wake(); });
 /* ---------- Apparence (iOS 27 : intensité du verre et mode teinté) ---------- */
 const TINTS = [["Bleu", "#2f7bf5"], ["Indigo", "#5e5ce6"], ["Rose", "#ff375f"], ["Orange", "#ff9f0a"], ["Vert", "#30d158"], ["Graphite", "#8e8e93"]];
+const CADRE_URL = /[?&#]cadre\b/.test(location.search + location.hash);
 const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-let look = { glass: 35, tinted: false, tint: "#2f7bf5", lite: !!WEAK };
+let look = { glass: 35, tinted: false, tint: "#2f7bf5", lite: !!WEAK, cadre: false };
 try { Object.assign(look, JSON.parse(localStorage.getItem("prisme-look")) || {}); } catch (e) {}
 function applyLook() {
   const root = document.documentElement, v = Math.max(0, Math.min(100, +look.glass || 0)) / 100;
@@ -968,6 +1121,8 @@ function applyLook() {
   root.style.setProperty("--tint", look.tint);
   root.classList.toggle("tinted", !!look.tinted);
   root.classList.toggle("lite", !!look.lite);
+  root.classList.toggle("cadre", !!look.cadre || CADRE_URL);
+  $("look-cadre").setAttribute("aria-checked", String(!!look.cadre || CADRE_URL));
   root.classList.toggle("dark-fallback", theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches));
   $("look-lite").setAttribute("aria-checked", String(!!look.lite));
   LiquidGlass.setGain(1.35 - v * .75);
@@ -986,6 +1141,10 @@ $("look-theme").addEventListener("click", (e) => {
 });
 let lookSave = 0;
 $("look-glass").addEventListener("input", (e) => { look.glass = +e.target.value; applyLook(); clearTimeout(lookSave); lookSave = setTimeout(saveLook, 300); });
+$("look-cadre").addEventListener("click", () => {
+  if (CADRE_URL) { toast("Mode cadre imposé par l'adresse (?cadre)"); return; }
+  look.cadre = !look.cadre; applyLook(); saveLook(); if (look.cadre) goFace(faceEls.indexOf($("face-photo")), false); else goFace(0, false);
+});
 $("look-lite").addEventListener("click", () => { look.lite = !look.lite; applyLook(); saveLook(); });
 $("look-tinted").addEventListener("click", () => { look.tinted = !look.tinted; applyLook(); saveLook(); });
 $("look-tint").addEventListener("click", (e) => { const b = e.target.closest("[data-c]"); if (!b) return; look.tint = b.dataset.c; applyLook(); saveLook(); });
@@ -1002,6 +1161,7 @@ $("btn-full").addEventListener("click", () => {
 let idleTimer;
 function wake() { $("ambient").hidden = true; resetIdle(); }
 function sleepNow() {
+  if (document.documentElement.classList.contains("cadre")) return;   // le cadre photo est déjà l'écran de repos
   $("ambient").hidden = false;
   if (ambStyle === "analog" && !ambRaf) analogLoop();
 }
@@ -1182,7 +1342,8 @@ $("m-prev").innerHTML = ic("prev"); $("m-next").innerHTML = ic("next");
 if (NATIVE) $("btn-full").style.display = "none";   // l'APK est déjà en plein écran
 refreshInstalled(); renderDock();
 
-buildAnalog(); applyAmbStyle(); applyTheme(); applyLook(); renderRooms(); renderAll(); renderPrinter(); renderMedia(); tick(); resetIdle(); goFace(faceIdx, false); nearNow();
+buildAnalog(); applyAmbStyle(); applyTheme(); applyLook(); renderRooms(); renderAll(); renderPrinter(); renderMedia(); tick(); resetIdle(); if (document.documentElement.classList.contains("cadre")) faceIdx = faceEls.indexOf($("face-photo"));
+goFace(faceIdx, false); nearNow();
 setInterval(tick, 1000);
 setInterval(() => {
   if (!printer.paused && printer.progress < 100) { printer.progress = Math.min(100, printer.progress + 0.5); renderPrinter(); }
