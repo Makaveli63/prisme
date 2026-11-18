@@ -1,40 +1,28 @@
 # Home+
 
-Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié sur https://makaveli63.github.io/prisme/.
+Cadre photo en verre liquide pour un écran posé dans le salon (Echo Show, vieille tablette…) : une très grande horloge lisible de loin, la date et la météo, par-dessus un diaporama de photos. Publié sur https://makaveli63.github.io/prisme/.
 
-- Horloge, salutation, météo et résumé de la maison
-- Cadrans à faire glisser, comme sur Apple HomeView : Maison, Horloge (lisible de loin) et Lecture ; vue simplifiée en grand quand on ne touche plus l'écran
-- Scènes (Bienvenue, Cinéma, Bonne nuit, Départ) et pièces
-- Tuiles d'appareils : lumières, thermostat, volets, prises, TV, porte. Touche pour allumer ou éteindre, appui long pour régler
-- Carte imprimante Bambu Lab A1 et carte de lecture
-- Dock d'applications et tiroir « Toutes » (recherche, appui long pour épingler au dock)
-- Thème clair / sombre / auto, plein écran, mode veille après 2 minutes (horloge numérique ou analogique, mode nuit automatique de 22 h à 7 h)
-- Installable sur l'écran d'accueil (plein écran, paysage)
+- Heure en très grand, en bas à gauche ou au centre ; date ; météo réelle (Open-Meteo, sans clé) de la ville choisie
+- Diaporama en fondu avec léger zoom, une photo toutes les 10 s à 5 min
+- Capsule en verre liquide derrière l'heure (réglable de transparent à givré, ou désactivée)
+- Assombri la nuit (22 h – 7 h), légère dérive pour éviter le marquage de l'écran, mode léger pour les appareils peu puissants
+- Toucher l'écran fait apparaître « Ajouter des photos » et « Réglages »
 
-C'est pour l'instant une **maquette** : les appareils, la météo, l'imprimante et la lecture sont des exemples définis en haut du script de `index.html` (`DEVICES`, `SCENES`, `APPS`, `printer`, `media`). Les applications du dock ne s'ouvrent pas depuis une page web : il faut l'application Android.
+## Photos
 
-## Cadre photo (Echo Show, vieille tablette…)
-
-Ouvrir la page avec `?cadre` à la fin de l'adresse : heure en grand par-dessus un diaporama, sans applications.
-
-- Photos depuis l'appareil : toucher l'écran puis « Ajouter des photos » (elles restent sur l'appareil).
-- Photos depuis l'iPhone, via le serveur de la maison (pratique pour un Echo Show, qui n'a pas de galerie) :
+- **Depuis l'appareil** : toucher l'écran, « Ajouter des photos ». Elles restent sur l'appareil.
+- **Depuis l'iPhone, via le serveur de la maison** (pour un Echo Show, qui n'a pas de galerie) :
   1. Sur le serveur Ubuntu : `git clone https://github.com/Makaveli63/prisme.git && cd prisme && python3 tools/serveur.py`
-  2. Sur l'Echo Show (navigateur Silk) : ouvrir `http://<adresse-du-serveur>:8000/?cadre`
-  3. Sur l'iPhone (Safari) : ouvrir `http://<adresse-du-serveur>:8000/envoyer`, choisir des photos. Partager › « Sur l'écran d'accueil » pour en faire une icône. Les photos sont réduites en JPEG avant l'envoi et apparaissent sur le cadre en 2 minutes ; on peut aussi les retirer depuis cette page.
+  2. Sur l'écran (navigateur Silk de l'Echo Show) : ouvrir `http://<adresse-du-serveur>:8000/`
+  3. Sur l'iPhone (Safari) : ouvrir `http://<adresse-du-serveur>:8000/envoyer` et choisir des photos (Partager › « Sur l'écran d'accueil » pour en faire une icône). Elles sont réduites en JPEG avant l'envoi et apparaissent en 2 minutes ; on peut aussi les retirer depuis cette page.
   4. Démarrage automatique : `tools/prisme-cadre.service` (instructions dedans). Option : `PRISME_CODE=1234` pour exiger un code à l'envoi.
-  Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison.
+
+  Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison. Le dossier `photos/` n'est jamais envoyé sur GitHub.
 
 ## Application Android
 
-Le dossier `android/` contient un launcher Android : la même page dans une WebView plein écran, avec un dock qui lance les vraies applications.
+Le dossier `android/` contient la même page dans une WebView plein écran, déclarée comme écran d'accueil : la tablette démarre directement sur le cadre. APK : https://github.com/Makaveli63/prisme/releases/download/apk-main/prisme-home.apk (s'installe par-dessus la version précédente). Dans Réglages, le bouton « Réglages Android » permet de revenir à l'écran d'accueil d'origine.
 
-1. Sur la tablette, ouvrir la page **Releases** du dépôt GitHub, pré-version `apk-main` (ou `apk-launcher`), et télécharger `prisme-home.apk`.
-2. Autoriser l'installation d'applications depuis le navigateur quand Android le demande, puis installer.
-3. Appuyer sur le bouton Accueil et choisir **Home+**, « Toujours ». Sinon : Réglages › Applications › Application d'accueil par défaut (le tiroir « Toutes » propose aussi le raccourci).
+Lancer en local : `python3 tools/serveur.py` (ou `python3 -m http.server`) puis http://localhost:8000.
 
-Pour revenir au launcher d'origine, changer l'application d'accueil dans les réglages ou désinstaller Home+.
-
-Lancer en local : `python3 -m http.server` puis ouvrir http://localhost:8000.
-
-L'ancien lecteur RSS Prisme se trouve dans l'historique git, avant la branche `launcher`.
+Les versions précédentes (lecteur RSS Prisme, puis tableau de bord domotique avec dock d'applications) se trouvent dans l'historique git.
