@@ -27,7 +27,11 @@ Le dépôt contenait avant un lecteur RSS (Prisme). Il est supprimé de la branc
 
 ## Style
 
-Palette et matière verre repris de l'ancien Prisme : variables `--glass`, `--rim`, `--on-bg`, fond de blobs flous animés. Tuile allumée : fond blanc, texte sombre. Tuile éteinte : verre.
+Liquid Glass façon iOS 26/27. Fond : dégradé `--wall` + blobs flous animés. Verre (classe `.glass`) : remplissage `--g-fill`, flou `--g-blur`, liseré spéculaire `::after` dont l'angle suit l'inclinaison de la tablette ou la souris (`--lx`, `--ly`), lumière sous le doigt `::before` (`.pressing`, `--mx`, `--my`), gonflement à ressort (`--spring`).
+
+- Réfraction : objet `LiquidGlass` dans le script. Pour chaque taille de verre il dessine une carte de déplacement (canvas, forme arrondie) et l'applique par un filtre SVG dans `backdrop-filter` (`--lg-f`). Chromium seulement (Chrome, WebView Android) ; ailleurs le verre reste flou. Désactivée si `prefers-reduced-transparency`.
+- Bouton Apparence (`#look`, réglages dans localStorage `prisme-look`) : thème, intensité du verre de transparent à givré (`--g-v`, qui règle aussi la force de la réfraction), verre teinté (classe `tinted` sur `<html>`) et couleur d'accent (`--tint`).
+- Tuile allumée : verre blanc dense, texte sombre. Tuile éteinte : verre clair.
 
 ## État actuel
 
