@@ -541,11 +541,40 @@ function save() { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.se
 const feedById = id => S.feeds.find(f => f.id === id);
 
 /* ================= Network ================= */
+// 1) Feeds pre-fetched by the GitHub Action (same origin, no CORS)
+const normUrl = u => (u || '').trim().replace(/^http:\/\//i, 'https://').replace(/\/+$/, '').toLowerCase();
+let cacheIndex = null, cacheIndexAt = 0;
+async function loadCacheIndex() {
+  if (cacheIndex && Date.now() - cacheIndexAt < 60000) return cacheIndex;
+  try {
+    const r = await fetch('cache/index.json?t=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) { cacheIndex = await r.json(); cacheIndexAt = Date.now(); }
+  } catch {}
+  return cacheIndex || {};
+}
+async function fromCache(...urls) {
+  const idx = await loadCacheIndex();
+  for (const u of urls) {
+    const e = u && idx[normUrl(u)];
+    if (!e) continue;
+    try {
+      const r = await fetch('cache/' + e.file + '?t=' + (e.t || Date.now()), { cache: 'no-store' });
+      if (!r.ok) continue;
+      const parsed = parseFeed(await r.text(), e.url);
+      if (parsed && parsed.items.length) return { url: e.url, parsed };
+    } catch {}
+  }
+  return null;
+}
+
+// 2) Public CORS relays
 const PROXIES = [
-  u => u,
-  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
-  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
-  u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),
+  { make: u => u, timeout: 5000 },
+  { make: u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u), json: true },
+  { make: u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u) },
+  { make: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { make: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
+  { make: u => 'https://thingproxy.freeboard.io/fetch/' + u },
 ];
 const proxyPref = {};
 async function fetchText(url) {
@@ -554,17 +583,34 @@ async function fetchText(url) {
   if (proxyPref[host] != null) { order.splice(order.indexOf(proxyPref[host]), 1); order.unshift(proxyPref[host]); }
   let lastErr;
   for (const i of order) {
-    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), i === 0 ? 6000 : 12000);
+    const px = PROXIES[i];
+    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), px.timeout || 12000);
     try {
-      const r = await fetch(PROXIES[i](url), { signal: ctrl.signal, cache: 'no-store' });
+      const r = await fetch(px.make(url), { signal: ctrl.signal, cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      const text = await r.text();
+      const text = px.json ? (await r.json()).contents : await r.text();
       if (!text || text.length < 40) throw new Error('Réponse vide');
       proxyPref[host] = i;
       return text;
     } catch (e) { lastErr = e; } finally { clearTimeout(t); }
   }
   throw lastErr || new Error('Échec du téléchargement');
+}
+
+// 3) Last resort: rss2json (returns JSON)
+async function viaRss2json(url) {
+  const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url), { cache: 'no-store' });
+  const j = await r.json();
+  if (j.status !== 'ok' || !j.items) throw new Error(j.message || 'rss2json');
+  return finalize({
+    title: j.feed?.title || '', siteUrl: j.feed?.link || '',
+    items: j.items.map(it => ({
+      guid: it.guid || it.link, title: it.title || '', link: it.link || '',
+      date: Date.parse((it.pubDate || '').replace(' ', 'T') + 'Z') || 0,
+      author: it.author || '', content: it.content || it.description || '', summary: it.description || '',
+      image: it.thumbnail || (/^image/.test(it.enclosure?.type || '') ? it.enclosure.link : '') || '',
+    })),
+  }, url);
 }
 
 /* ================= Parsing ================= */
@@ -619,6 +665,9 @@ function parseFeed(text, feedUrl) {
       });
     }
   } else return null;
+  return finalize(out, feedUrl);
+}
+function finalize(out, feedUrl) {
   for (const it of out.items) {
     it.title = stripHtml(it.title) || '(sans titre)';
     it.link = absUrl(it.link, out.siteUrl || feedUrl);
@@ -639,6 +688,9 @@ function discoverFeeds(html, pageUrl) {
 async function resolveFeed(input) {
   let url = input.trim();
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const origin0 = (() => { try { return new URL(url).origin + '/'; } catch { return ''; } })();
+  const cached = await fromCache(url, origin0);
+  if (cached) return cached;
   let text = '';
   try { text = await fetchText(url); const p = parseFeed(text, url); if (p) return { url, parsed: p }; } catch {}
   const candidates = text ? discoverFeeds(text, url) : [];
@@ -650,6 +702,7 @@ async function resolveFeed(input) {
   for (const c of [...new Set(candidates)].filter(c => c !== url)) {
     try { const t = await fetchText(c); const p = parseFeed(t, c); if (p) return { url: c, parsed: p }; } catch {}
   }
+  try { const p = await viaRss2json(url); if (p.items.length) return { url, parsed: p }; } catch {}
   throw new Error('Aucun flux RSS trouvé à cette adresse');
 }
 
@@ -671,8 +724,11 @@ function mergeItems(feed, parsed) {
 async function refreshFeed(feed) {
   try {
     let parsed = null;
-    try { parsed = parseFeed(await fetchText(feed.url), feed.url); } catch {}
-    if (!parsed) { const r = await resolveFeed(feed.siteUrl || feed.url); feed.url = r.url; parsed = r.parsed; }
+    const cached = await fromCache(feed.url, feed.siteUrl);
+    if (cached) { feed.url = cached.url; parsed = cached.parsed; }
+    if (!parsed) try { parsed = parseFeed(await fetchText(feed.url), feed.url); } catch {}
+    if (!parsed) try { parsed = await viaRss2json(feed.url); } catch {}
+    if (!parsed || !parsed.items.length) { const r = await resolveFeed(feed.siteUrl || feed.url); feed.url = r.url; parsed = r.parsed; }
     const n = mergeItems(feed, parsed);
     feed.error = ''; feed.lastFetched = Date.now();
     return n;
@@ -782,7 +838,8 @@ function renderList(keepScroll = true) {
   const ul = $('#items'), sc = $('#listScroll'), top = sc.scrollTop;
   if (!list.length) {
     const f = S.settings.filter;
-    const msg = query ? 'Aucun résultat.' : !S.feeds.length ? 'Ajoutez une source pour commencer.' : f === 'starred' ? 'Aucun favori ici.' : f === 'unread' ? 'Tout est lu ✨' : 'Aucun article.';
+    const fe = sel.type === 'feed' && feedById(sel.id)?.error;
+    const msg = fe ? 'Impossible de charger cette source (' + esc(fe) + '). Tirez vers le bas pour réessayer.' : query ? 'Aucun résultat.' : !S.feeds.length ? 'Ajoutez une source pour commencer.' : f === 'starred' ? 'Aucun favori ici.' : f === 'unread' ? 'Tout est lu ✨' : 'Aucun article.';
     ul.innerHTML = `<li class="empty">${icon('i-layers')}<div>${msg}</div></li>`;
     return;
   }

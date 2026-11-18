@@ -1,4 +1,4 @@
-const CACHE = 'prisme-v2';
+const CACHE = 'prisme-v3';
 const SHELL = ['./', './index.html', './icon.svg', './manifest.webmanifest', './icon-180.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -8,7 +8,7 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.includes('/cache/')) return;
   e.respondWith(
     fetch(e.request).then(r => {
       const copy = r.clone();
