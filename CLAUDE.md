@@ -10,6 +10,7 @@ Le dépôt contenait avant un lecteur RSS (Prisme). Il est supprimé de la branc
 - `manifest.webmanifest`, `icon.svg`, `icon-180.png`, `icon-512.png` : installation sur l'écran d'accueil (plein écran, paysage).
 - `.github/workflows/pages.yml` : copie ces fichiers dans `_site/` et publie sur Pages à chaque push sur `main`.
 - `android/` : application Android (Java, sans AppCompat, seule dépendance `androidx.webkit`). `MainActivity` affiche `index.html` dans une WebView plein écran et se déclare launcher (`CATEGORY_HOME`). La tâche Gradle `copyWeb` copie `index.html` et les icônes de la racine dans les assets : la page n'existe qu'une fois.
+- Icône : maison en verre liquide traversée par un faisceau qui se décompose en arc-en-ciel (le prisme), sur fond indigo → violet → magenta. `icon.svg` est la source ; les PNG (`icon-180.png`, `icon-512.png`, et dans `android/app/src/main/res/` l'icône adaptative `ic_launcher_foreground`/`ic_launcher_background` plus `ic_launcher.png` arrondi) sont rendus depuis le SVG avec Chromium.
 - `android/debug.keystore` : clé de debug fixe (mot de passe public `android`), pour que chaque APK s'installe par-dessus le précédent. Ce n'est pas une clé de publication.
 - `.github/workflows/android.yml` : compile l'APK à chaque push sur `main` ou `launcher` et le publie en pré-version GitHub `apk-<branche>` (fichier `prisme-home.apk`).
 
