@@ -22,6 +22,7 @@ L'utilisateur ne veut **que** l'horloge, la date, la météo et les photos : pas
 - Météo : Open-Meteo (`loadWeather`, toutes les 30 min, dernière météo gardée 6 h dans `homeplus-wx` en cas de coupure), ville cherchée par le géocodage Open-Meteo (`setCity`). Icônes `WX_ICONS`, libellés `wxKind(code, jour)`.
 - Photos : objet `Photos`. Sources cumulées : photos ajoutées depuis l'appareil (IndexedDB `prisme-photos`, jamais envoyées) et dossier `photos/` servi à côté de la page (liste du serveur ou `photos/photos.json`), ou `?photos=<adresse>` ; relu toutes les 2 min. Sans photo, des dégradés servent d'exemple. `photos/` est dans `.gitignore` : ne jamais committer de photos.
 - Verre liquide : classe `.glass` (flou, liseré spéculaire `::after` orienté par `--lx`/`--ly`), réfraction des bords par l'objet `LiquidGlass` (carte de déplacement dessinée dans un canvas, filtre SVG en `backdrop-filter`, Chromium 111+ seulement, coupée en mode léger). Repli `@supports not (color-mix)` pour les vieilles WebView.
+- Plein écran demandé au premier toucher (`goFullscreen`, cache la barre de Silk sur l'Echo Show ; ignoré dans l'APK) et écran gardé allumé par Wake Lock (`keepAwake`).
 - Toucher l'écran affiche « Ajouter des photos » et « Réglages » pendant 7 s.
 
 ## Tests

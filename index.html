@@ -125,7 +125,7 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
   <div class="slide" id="ph-a"></div><div class="slide" id="ph-b"></div>
   <div class="shade"></div>
   <div class="dim"></div>
-  <div class="empty" id="ph-empty" hidden>Touche l'écran pour ajouter des photos ou régler la ville de la météo.</div>
+  <div class="empty" id="ph-empty" hidden>Touche l'écran pour passer en plein écran, ajouter des photos ou régler la météo.</div>
 </div>
 
 <main class="hud" aria-live="off">
@@ -499,6 +499,25 @@ let toolsTimer;
 function showTools() { $("tools").classList.add("on"); clearTimeout(toolsTimer); toolsTimer = setTimeout(() => $("tools").classList.remove("on"), 7000); }
 document.addEventListener("pointerdown", (e) => { if (!e.target.closest("dialog")) showTools(); }, { passive: true });
 $("ph-file").addEventListener("change", (e) => { Photos.add([...e.target.files]); e.target.value = ""; });
+
+/* Plein écran (cache la barre d'adresse du navigateur, ex. Silk sur Echo Show) : demandé au premier toucher,
+   car un navigateur n'accepte le plein écran qu'après un geste. Inutile dans l'APK, déjà en plein écran. */
+function goFullscreen() {
+  if (NATIVE || document.fullscreenElement || document.webkitFullscreenElement) return;
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) try { const r = req.call(el); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+}
+document.addEventListener("pointerup", (e) => { if (!e.target.closest("dialog, .tools")) goFullscreen(); }, { passive: true });
+
+/* Garder l'écran allumé (Wake Lock), et le redemander quand la page revient au premier plan. */
+let wakeLock = null;
+async function keepAwake() {
+  if (!("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+  try { wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+}
+document.addEventListener("visibilitychange", keepAwake);
+document.addEventListener("pointerup", () => { if (!wakeLock || wakeLock.released) keepAwake(); }, { passive: true });
+keepAwake();
 
 /* Boutons Retour et Accueil de l'APK Android */
 const closeDialogs = () => document.querySelectorAll("dialog[open]").forEach((d) => d.close());
