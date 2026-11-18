@@ -1,11 +1,11 @@
 {
   "name": "Home+",
   "short_name": "Home+",
-  "description": "Launcher pour tablette inspiré de la vue Maison d'Apple, en style Liquid Glass.",
+  "description": "Cadre photo : grande horloge, date et météo sur un diaporama, en verre liquide.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#3b5bff",
   "theme_color": "#0b0d13",
   "icons": [

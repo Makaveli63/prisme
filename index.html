@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Home+</title>
-<meta name="theme-color" content="#eef1f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0d13" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0b0d13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,871 +13,292 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
-/* Direction : vue Maison façon Apple, matière Liquid Glass (même palette que Prisme).
-   Mise en page : colonne principale (scènes, pièces, tuiles) + colonne latérale (imprimante, lecture) + dock d'applications. */
+/* Home+ : cadre photo. Une très grande horloge lisible de loin, la date et la météo, sur un diaporama de photos.
+   Matière : verre liquide (flou, liseré spéculaire, réfraction des bords dans Chromium). */
 :root {
-  --bg: #eef1f7; --text: #0d1220; --muted: #6b7286; --tint: #2f7bf5; --warm: #ffb340;
-  --glass: rgba(255, 255, 255, .26); --glass-strong: rgba(255, 255, 255, .8);
-  --rim: rgba(255, 255, 255, .95); --rim-2: rgba(255, 255, 255, .5); --glow: rgba(255, 255, 255, .45);
-  --on-bg: rgba(255, 255, 255, .94); --on-text: #141a2b; --on-muted: #6a7186;
-  --track: rgba(110, 120, 150, .22); --shadow: 0 12px 32px rgba(20, 30, 70, .14), 0 2px 8px rgba(20, 30, 70, .08);
-  --b1: #6f9bff; --b2: #ff8fc4; --b3: #a98bff; --b4: #ffbe6b;
-  --wall: linear-gradient(160deg, #dbe6ff 0%, #efe4ff 45%, #ffe6ee 75%, #fff0dc 100%);
-  --g-base0: #ffffff; --g-k0: .06;
-  --g-rim: rgba(255, 255, 255, .95); --g-rim-lo: rgba(255, 255, 255, .35);
-  --g-inner: rgba(255, 255, 255, .28); --g-shade: rgba(30, 40, 90, .07);
-  --g-shadow: 0 10px 30px rgba(30, 40, 90, .12), 0 1px 3px rgba(30, 40, 90, .08);
-  --g-sat: 190%;
+  --text: #fff; --muted: rgba(255, 255, 255, .78); --tint: #2f7bf5;
+  --g-v: .3;
+  --g-fill: rgba(255, 255, 255, calc(.04 + var(--g-v) * .3)); --g-fill-hi: rgba(255, 255, 255, calc(.12 + var(--g-v) * .3));
+  --g-blur: calc(4px + var(--g-v) * 26px); --g-sat: 170%;
+  --g-rim: rgba(255, 255, 255, .8); --g-rim-lo: rgba(255, 255, 255, .28); --g-inner: rgba(255, 255, 255, .3);
+  --g-shadow: 0 20px 50px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .2);
   --spring: cubic-bezier(.34, 1.56, .64, 1);
-  --lx: 0; --ly: -1;
+  --lx: 0; --ly: -1; --lg-f: blur(0px);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0b0d13; --text: #f1f3f8; --muted: #8c93a5; --tint: #4b93ff;
-    --glass: rgba(255, 255, 255, .07); --glass-strong: rgba(34, 38, 52, .86);
-    --rim: rgba(255, 255, 255, .42); --rim-2: rgba(255, 255, 255, .14); --glow: rgba(255, 255, 255, .06);
-    --track: rgba(255, 255, 255, .16); --shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
-    --b1: #2350d8; --b2: #a12a7f; --b3: #5434c4; --b4: #b65a14;
-    --wall: linear-gradient(160deg, #070a18 0%, #0e0a22 50%, #160a18 100%);
-    --g-base0: #283048; --g-k0: .1;
-    --g-rim: rgba(255, 255, 255, .55); --g-rim-lo: rgba(255, 255, 255, .12);
-    --g-inner: rgba(255, 255, 255, .07); --g-shade: rgba(0, 0, 0, .25);
-    --g-shadow: 0 12px 34px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0b0d13; --text: #f1f3f8; --muted: #8c93a5; --tint: #4b93ff;
-  --glass: rgba(255, 255, 255, .07); --glass-strong: rgba(34, 38, 52, .86);
-  --rim: rgba(255, 255, 255, .42); --rim-2: rgba(255, 255, 255, .14); --glow: rgba(255, 255, 255, .06);
-  --track: rgba(255, 255, 255, .16); --shadow: 0 12px 32px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
-  --b1: #2350d8; --b2: #a12a7f; --b3: #5434c4; --b4: #b65a14;
-  --wall: linear-gradient(160deg, #070a18 0%, #0e0a22 50%, #160a18 100%);
-  --g-base0: #283048; --g-k0: .1;
-  --g-rim: rgba(255, 255, 255, .55); --g-rim-lo: rgba(255, 255, 255, .12);
-  --g-inner: rgba(255, 255, 255, .07); --g-shade: rgba(0, 0, 0, .25);
-  --g-shadow: 0 12px 34px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .3);
   color-scheme: dark;
 }
-
-/* Intensité du verre (--g-v, 0 = transparent, 1 = givré) et mode teinté, réglables dans « Apparence » comme dans iOS 27. */
-:root { --g-v: .35; --g-base: var(--g-base0); }
-:root.tinted { --g-base: color-mix(in srgb, var(--tint) 46%, var(--g-base0)); }
-:root {
-  --g-fill: color-mix(in srgb, var(--g-base) calc((var(--g-k0) + var(--g-v) * .62) * 100%), transparent);
-  --g-fill-hi: color-mix(in srgb, var(--g-base) calc((var(--g-k0) + .1 + var(--g-v) * .62) * 100%), transparent);
-  --g-blur: calc(2px + var(--g-v) * 26px);
-}
-
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
-html { height: 100%; font-size: clamp(12px, min(2vh, 1.4vw), 22px); }
-body { height: 100%; margin: 0; background: var(--wall) fixed, var(--bg); color: var(--text); font: 1rem/1.35 var(--font); -webkit-font-smoothing: antialiased; overflow: hidden; }
-button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; }
-svg { width: 1.5rem; height: 1.5rem; flex: none; }
-:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; background: #07080f; color: var(--text); font: 16px/1.35 var(--font); -webkit-font-smoothing: antialiased; -webkit-user-select: none; user-select: none; }
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; }
+svg { flex: none; }
 
-/* Fond animé */
-.blobs { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-.blobs i { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .62; animation: drift 28s ease-in-out infinite alternate; }
-.blobs i:nth-child(1) { width: 55vmax; height: 55vmax; background: var(--b1); left: -18vmax; top: 10vh; }
-.blobs i:nth-child(2) { width: 45vmax; height: 45vmax; background: var(--b2); right: -14vmax; top: 6vh; animation-duration: 34s; }
-.blobs i:nth-child(3) { width: 50vmax; height: 50vmax; background: var(--b3); left: 18vw; bottom: -26vmax; animation-duration: 40s; }
-.blobs i:nth-child(4) { width: 28vmax; height: 28vmax; background: var(--b4); right: 24vw; bottom: 6vh; animation-duration: 31s; opacity: .5; }
-@keyframes drift { to { transform: translate(6vw, 5vh) scale(1.12); } }
-@media (prefers-reduced-motion: reduce) { .blobs i { animation: none; } }
-
-/* Mode léger (appareils peu puissants, ex. Echo Show sous LineageOS) : fond fixe, flou réduit, pas de réfraction. */
-:root.lite { --g-blur: 6px; }
-:root.lite .blobs i { animation: none; }
-:root.lite .glass, :root.lite dialog { --lg-f: blur(0px) !important; }
-:root.lite dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
-
-/* Vieilles WebView (avant Chromium 111) : sans color-mix() ni atan2(), on revient à des couleurs fixes. */
-@supports not (color: color-mix(in srgb, red 50%, blue)) {
-  :root { --g-fill: rgba(255, 255, 255, .24); --g-fill-hi: rgba(255, 255, 255, .38); --g-blur: 10px; }
-  :root.dark-fallback { --g-fill: rgba(60, 66, 90, .32); --g-fill-hi: rgba(80, 86, 110, .4); }
-  .glass::after, dialog::after, .toast::after { background: linear-gradient(135deg, var(--g-rim), transparent 32%, transparent 62%, var(--g-rim)); }
-  dialog, .toast { background: var(--glass-strong); }
-  .scene.active, .btn.primary { background: var(--tint); }
-  .fc-time { background: none; color: var(--text); }
-}
-
-/* Matière Liquid Glass
-   1. Verre : flou léger + saturation. Dans Chromium (Chrome, WebView Android), --lg-f ajoute une réfraction
-      des bords calculée pour chaque forme (voir LiquidGlass dans le script).
-   2. Liseré spéculaire (::after) dont l'angle suit l'inclinaison de la tablette (--lx, --ly).
-   3. Lumière au toucher (::before) centrée sur le doigt (--mx, --my). */
-:root { --lg-f: blur(0px); }
-.glass {
-  position: relative; isolation: isolate;
-  background: linear-gradient(180deg, var(--g-fill-hi), var(--g-fill) 40%);
-  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
-  backdrop-filter: var(--lg-f) blur(var(--g-blur)) saturate(var(--g-sat)) brightness(1.04);
-  box-shadow: var(--g-shadow), inset 0 0 0 .5px var(--g-rim-lo), inset 0 1px 1px var(--g-inner), inset 0 -10px 22px -14px var(--g-shade), inset 0 10px 24px -16px var(--g-inner);
-  transition: transform .45s var(--spring), background .3s, color .3s, box-shadow .3s;
-}
-.glass::after, dialog::after, .toast::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; padding: 1.2px;
-  background: linear-gradient(calc(atan2(var(--ly), var(--lx)) + 90deg), var(--g-rim) 0%, transparent 32%, transparent 62%, var(--g-rim) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: .9;
-}
-.glass::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 55%);
-  opacity: 0; transition: opacity .5s;
-}
-.glass.pressing::before { opacity: .7; transition-duration: .08s; }
-.glass.pressing { transform: scale(1.035); }
-@media (prefers-reduced-motion: reduce) { .glass, .glass.pressing { transition: none; transform: none; } }
-
-/* Mise en page */
-.app { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: .7rem;
-  padding: max(1.4rem, env(safe-area-inset-top)) max(1.6rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1.6rem, env(safe-area-inset-left)); }
-.main { min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 1.1rem; padding: .6rem 1rem 1.2rem; margin: -.6rem -1rem 0; }
-.main::-webkit-scrollbar, .side::-webkit-scrollbar { display: none; }
-.main > *, .side > * { flex: none; }
-.side { min-height: 0; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 1rem; padding: .9rem 1rem 1.2rem; margin: -.6rem -1rem 0; }
-.dock { justify-self: center; display: flex; gap: 1.1rem; padding: .8rem 1.3rem; border-radius: 2.4rem; --g-blur: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-.dock::-webkit-scrollbar { display: none; }
-
-/* Cadrans façon HomeView : pages plein écran qu'on fait glisser (Maison, Horloge, Lecture). */
-.faces { min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
-  margin: -1rem -1.6rem -1.4rem; padding: 1rem 0 1.4rem; }
-.faces::-webkit-scrollbar { display: none; }
-.face { flex: 0 0 100%; min-width: 0; min-height: 0; scroll-snap-align: start; scroll-snap-stop: always; padding: 0 1.6rem; }
-.face-home { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1rem 1.5rem; }
-.dots { justify-self: center; display: flex; gap: .55rem; padding: .45rem .8rem; border-radius: 99px; --g-blur: 6px; }
-.dots button { width: .55rem; height: .55rem; border-radius: 99px; background: var(--muted); opacity: .45; transition: width .45s var(--spring), opacity .3s, background .3s; }
-.dots button[aria-current="true"] { width: 1.5rem; opacity: 1; background: var(--text); }
-
-/* Cadran Photos : diaporama plein écran + heure en verre (comme le cadran Photos de HomeView).
-   En mode cadre (?cadre dans l'adresse, ou Apparence), c'est le seul cadran : pas de dock, pas d'applis. */
-.face-photo { position: relative; padding: 0; }
-.ph-stage { position: absolute; inset: 0 1.6rem; border-radius: 2.4rem; overflow: hidden; background: #0b0d13; box-shadow: var(--g-shadow); }
-.ph-slide { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.8s ease; }
-.ph-slide.show { opacity: 1; }
-.ph-slide.kb { animation: kenburns 20s ease-out both; }
-.ph-slide.kb.alt { animation-name: kenburns2; }
+/* Diaporama */
+.stage { position: fixed; inset: 0; overflow: hidden; background: #07080f; }
+.slide { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.8s ease; }
+.slide.show { opacity: 1; }
+.slide.kb { animation: kenburns 24s ease-out both; }
+.slide.kb.alt { animation-name: kenburns2; }
 @keyframes kenburns { from { transform: scale(1.12) translate(1.5%, 1%); } to { transform: scale(1) translate(0, 0); } }
 @keyframes kenburns2 { from { transform: scale(1) translate(-1%, 0); } to { transform: scale(1.12) translate(1%, -1.5%); } }
-:root.lite .ph-slide.kb { animation: none; }
-.ph-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, 0) 45%); }
-.ph-clock { position: absolute; left: 2.6rem; bottom: 2.4rem; padding: 1rem 1.8rem 1.1rem; border-radius: 2rem; color: #fff; text-align: left;
-  --g-fill: rgba(255, 255, 255, .1); --g-fill-hi: rgba(255, 255, 255, .2); --g-rim: rgba(255, 255, 255, .7); --g-rim-lo: rgba(255, 255, 255, .25); --g-blur: 14px; }
-.ph-time { font-size: 6.2rem; line-height: .95; font-weight: 700; letter-spacing: -.045em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 20px rgba(0, 0, 0, .25); }
-.ph-meta { margin-top: .35rem; font-size: 1.25rem; font-weight: 600; opacity: .9; display: flex; gap: .8rem; align-items: center; }
-.ph-meta svg { width: 1.4rem; height: 1.4rem; }
-.ph-tools { position: absolute; right: 2.6rem; top: 1.4rem; display: flex; gap: .6rem; opacity: 0; transition: opacity .4s; pointer-events: none; }
-.ph-tools.on { opacity: 1; pointer-events: auto; }
-.ph-tools .btn { color: #fff; background: rgba(255, 255, 255, .16); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: inset 0 0 0 .5px rgba(255, 255, 255, .35); }
-.ph-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: rgba(255, 255, 255, .85); font-size: 1.1rem; gap: .5rem; pointer-events: none; }
-.ph-dim { position: absolute; inset: 0; pointer-events: none; background: rgba(20, 8, 0, .55); mix-blend-mode: multiply; opacity: 0; transition: opacity 2s; }
-.face-photo.night .ph-dim { opacity: 1; }
-:root.far .ph-time { font-size: 8rem; }
-:root.cadre .dock, :root.cadre .dots, :root.cadre .face:not(.face-photo) { display: none; }
-:root.cadre .faces { margin-bottom: 0; padding-bottom: 0; }
-:root.cadre .app { padding: 0; grid-template-rows: minmax(0, 1fr); }
-:root.cadre .faces { margin: 0; padding: 0; }
-:root.cadre .ph-stage { inset: 0; border-radius: 0; }
-:root.cadre .ambient { display: none !important; }
+.shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(20deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 45%, rgba(0, 0, 0, 0) 70%); }
+:root[data-pos="center"] .shade { background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, .45), rgba(0, 0, 0, .1) 70%); }
+.dim { position: absolute; inset: 0; pointer-events: none; background: rgba(25, 10, 0, .6); opacity: 0; transition: opacity 3s; }
+:root.night .dim { opacity: 1; }
+.empty { position: absolute; left: 50%; top: 8vh; transform: translateX(-50%); text-align: center; font-size: 1.05rem; color: var(--muted); white-space: nowrap; }
 
-/* Cadran Horloge : lisible de loin */
-.face-clock { display: grid; grid-template-rows: 1fr auto; align-items: center; justify-items: center; text-align: center; padding-bottom: .6rem; }
-.fc-main { display: grid; gap: .4rem; justify-items: center; }
-.fc-date { font-size: 1.6rem; font-weight: 600; color: var(--muted); }
-.fc-time { font-size: min(34vh, 24vw); line-height: .92; font-weight: 700; letter-spacing: -.05em; font-variant-numeric: tabular-nums;
-  background: linear-gradient(180deg, var(--text) 30%, color-mix(in srgb, var(--text) 55%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.fc-weather { display: inline-flex; align-items: center; gap: .7rem; font-size: 1.5rem; font-weight: 650; padding: .6rem 1.3rem; border-radius: 99px; }
-.fc-weather svg { width: 2rem; height: 2rem; }
-.fc-weather small { font-size: 1.1rem; font-weight: 550; color: var(--muted); }
-.complications { display: grid; grid-template-columns: repeat(3, minmax(0, 16rem)); gap: 1rem; justify-content: center; width: 100%; }
-.cpl { border-radius: 1.8rem; padding: 1rem 1.15rem; display: flex; align-items: center; gap: .9rem; text-align: left; min-width: 0; }
-.cpl .cv { font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-.cpl .cl { font-size: .9rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cpl > div { min-width: 0; }
-.cpl .ci { width: 2.8rem; height: 2.8rem; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--track); }
-.cpl .ci.warm { background: rgba(255, 179, 64, .28); color: #c27400; }
-.cpl .ci.green { background: rgba(52, 199, 89, .22); color: #1f9a45; }
-.cpl .ci.blue { background: rgba(47, 123, 245, .18); color: #1f64d6; }
+/* Heure, date, météo : lisibles depuis le canapé */
+.hud { position: fixed; left: max(5vw, env(safe-area-inset-left)); bottom: max(6vh, env(safe-area-inset-bottom)); animation: drift 120s ease-in-out infinite alternate; }
+:root[data-pos="center"] .hud { left: 50%; top: 50%; bottom: auto; translate: -50% -50%; text-align: center; }
+@keyframes drift { from { transform: translate(-1vmin, -.8vmin); } to { transform: translate(1vmin, .8vmin); } }
+.panel { padding: 2.2vh 3.4vh 2.6vh; border-radius: 5vh; }
+:root.noplate .panel { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; }
+:root.noplate .panel::after { display: none; }
+.time { font-size: min(32vh, 24vw); line-height: .9; font-weight: 650; letter-spacing: -.045em; font-variant-numeric: tabular-nums; margin-left: -.03em;
+  text-shadow: 0 .02em .12em rgba(0, 0, 0, .35); }
+:root[data-pos="center"] .time { font-size: min(40vh, 30vw); }
+.line { display: flex; align-items: center; gap: .6em; flex-wrap: wrap; margin-top: 1.4vh; font-size: min(6vh, 4.6vw); font-weight: 600; text-shadow: 0 1px 12px rgba(0, 0, 0, .35); }
+:root[data-pos="center"] .line { justify-content: center; }
+.wxline { margin-top: .6vh; }
+.wx { display: inline-flex; align-items: center; gap: .35em; }
+.wx svg { width: 1.25em; height: 1.25em; }
+.wx small { font-size: .72em; font-weight: 550; color: var(--muted); }
 
-/* Cadran Lecture */
-.face-play { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 26rem); gap: 3rem; align-items: center; justify-content: center; }
-.pl-art { width: min(58vh, 40vw); aspect-ratio: 1; border-radius: 2.4rem; display: grid; place-items: center; color: rgba(255, 255, 255, .9);
-  background: linear-gradient(145deg, #e5a00d, #b0561d 60%, #5a2a1a); box-shadow: 0 30px 70px rgba(90, 40, 10, .35), inset 0 1px 1px rgba(255, 255, 255, .4); }
-.pl-art svg { width: 30%; height: 30%; }
-.pl-info h2 { margin: 0; font-size: 2.1rem; line-height: 1.1; letter-spacing: -.02em; }
-.pl-info p { margin: .4rem 0 0; font-size: 1.2rem; color: var(--muted); font-weight: 600; }
-.pl-info .bar { height: .55rem; margin: 1.6rem 0 .3rem; }
-.pl-times { display: flex; justify-content: space-between; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.pl-ctrl { display: flex; justify-content: center; align-items: center; gap: 1.6rem; margin-top: 1.2rem; padding: .8rem 1.4rem; border-radius: 99px; }
-.pl-ctrl button { width: 3.4rem; height: 3.4rem; display: grid; place-items: center; border-radius: 50%; transition: transform .4s var(--spring); }
-.pl-ctrl button svg { width: 1.8rem; height: 1.8rem; }
-.pl-ctrl .play { width: 4.6rem; height: 4.6rem; background: var(--text); color: var(--bg); box-shadow: 0 10px 24px rgba(0, 0, 0, .22); }
-.pl-ctrl .play svg { width: 2.1rem; height: 2.1rem; }
-.pl-ctrl button:active { transform: scale(1.1); }
+/* Verre liquide */
+.glass { position: relative; isolation: isolate;
+  background: linear-gradient(180deg, var(--g-fill-hi), var(--g-fill) 45%);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: var(--lg-f) blur(var(--g-blur)) saturate(var(--g-sat)) brightness(1.02);
+  box-shadow: var(--g-shadow), inset 0 0 0 .5px var(--g-rim-lo), inset 0 1px 1px var(--g-inner), inset 0 -14px 30px -18px rgba(0, 0, 0, .25); }
+.glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; padding: 1.4px;
+  background: linear-gradient(calc(atan2(var(--ly), var(--lx)) + 90deg), var(--g-rim) 0%, transparent 32%, transparent 62%, var(--g-rim) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .glass::after { background: linear-gradient(135deg, var(--g-rim), transparent 32%, transparent 62%, var(--g-rim)); }
+}
+:root.lite { --g-blur: 8px; }
+:root.lite .slide.kb, :root.lite .hud { animation: none; }
+:root.lite .glass { --lg-f: blur(0px) !important; }
 
-/* Interface selon la distance (comme HomeView) : sans toucher l'écran pendant FAR_MS, on suppose qu'on le regarde de loin.
-   Textes agrandis, détails masqués ; le premier toucher revient à la vue de près sans rien déclencher. */
-.app, .head, .clock, .tile, .tile .name, .fc-time, .complications, .pl-info h2 { transition: transform .7s var(--spring), font-size .6s, opacity .5s; }
-.hint, .status, .tile .state, .pinfo span, .tools .round, .dock, .dots, .rooms, .scenes, .card .row, .transport, .pl-ctrl, .pl-times { transition: opacity .5s; }
-:root.far .app { pointer-events: none; }
-:root.far .ph-tools { opacity: 0; }
-:root.far .hint, :root.far .status, :root.far .tile .state, :root.far .tools .round, :root.far .dock, :root.far .dots, :root.far .card .row, :root.far .transport, :root.far .pl-ctrl, :root.far .pl-times { opacity: 0; }
-:root.far .scenes, :root.far .rooms { opacity: .35; }
-:root.far .clock { font-size: 6.4rem; }
-:root.far .tile .name { font-size: 1.25rem; }
-:root.far .fc-time { font-size: min(40vh, 27vw); }
-:root.far .complications { transform: translateY(-1rem) scale(1.06); }
-:root.far .pl-info h2 { font-size: 2.6rem; }
+/* Boutons qui apparaissent au toucher */
+.tools { position: fixed; right: max(3vw, env(safe-area-inset-right)); top: max(3vh, env(safe-area-inset-top)); display: flex; gap: .7rem; opacity: 0; pointer-events: none; transition: opacity .4s; }
+.tools.on { opacity: 1; pointer-events: auto; }
+.pill { display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.2rem; border-radius: 99px; font-weight: 650; font-size: 1.05rem; cursor: pointer; }
+.pill svg { width: 1.3rem; height: 1.3rem; }
 
-/* En-tête */
-.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
-.date { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--muted); }
-.clock { margin: 0; font-size: 4.6rem; line-height: 1; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(255, 255, 255, .35); }
-.hello { margin: .35rem 0 0; font-size: 1.15rem; font-weight: 600; }
-.status { margin: .15rem 0 0; color: var(--muted); font-size: .95rem; }
-.tools { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; justify-content: flex-end; }
-.chip { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem .95rem; border-radius: 99px; font-weight: 600; font-size: .95rem; }
-.chip svg { width: 1.25rem; height: 1.25rem; }
-.round { width: 2.9rem; height: 2.9rem; border-radius: 50%; display: grid; place-items: center; }
-.round svg { width: 1.3rem; height: 1.3rem; }
-
-/* Scènes et pièces */
-.scenes, .rooms { display: flex; gap: .6rem; overflow-x: auto; scrollbar-width: none; padding: .6rem 1rem 1.1rem; margin: -.6rem -1rem -.7rem; }
-.scenes::-webkit-scrollbar, .rooms::-webkit-scrollbar { display: none; }
-.scene { display: inline-flex; align-items: center; gap: .6rem; padding: .7rem 1.1rem; border-radius: 99px; font-weight: 600; white-space: nowrap; }
-.scene svg { width: 1.3rem; height: 1.3rem; color: var(--tint); }
-.scene.active { background: linear-gradient(180deg, color-mix(in srgb, var(--tint) 82%, #fff), var(--tint)); color: #fff;
-  box-shadow: 0 10px 26px color-mix(in srgb, var(--tint) 45%, transparent), inset 0 1px 1px rgba(255, 255, 255, .6); }
-.scene.active svg { color: #fff; }
-.rooms { gap: .2rem; padding: .3rem; margin: 0; align-self: flex-start; max-width: 100%; border-radius: 99px; }
-.room { font-size: 1.02rem; font-weight: 650; color: var(--muted); padding: .55rem 1.15rem; border-radius: 99px; white-space: nowrap; transition: background .35s var(--spring), color .25s, box-shadow .35s; }
-.room[aria-selected="true"] { color: var(--on-text); background: rgba(255, 255, 255, .92); box-shadow: 0 4px 14px rgba(30, 40, 90, .14), inset 0 1px 1px #fff; }
-
-/* Tuiles */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr)); gap: .9rem; align-content: start; }
-.tile { min-height: 8.6rem; border-radius: 1.7rem; padding: 1.05rem; display: flex; flex-direction: column; justify-content: space-between; text-align: left;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; transition: background .25s, color .25s, transform .12s; }
-
-.tile .ico { width: 2.7rem; height: 2.7rem; border-radius: 50%; display: grid; place-items: center; background: var(--track); transition: background .25s, color .25s;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .35); }
-.tile .ico svg { width: 1.45rem; height: 1.45rem; }
-.tile .name { display: block; font-weight: 650; font-size: 1.02rem; line-height: 1.2; }
-.tile .state { display: block; margin-top: .15rem; font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.tile.on { background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(255, 255, 255, .84)); color: var(--on-text);
-  box-shadow: 0 14px 34px rgba(30, 40, 90, .2), 0 2px 6px rgba(30, 40, 90, .1), inset 0 1px 1px #fff, inset 0 -8px 18px -12px rgba(30, 40, 90, .18); }
-.tile.on .state { color: var(--on-muted); }
-.tile.on .ico { background: rgba(255, 179, 64, .28); color: #c27400; }
-.tile.on.cool .ico, .tile.on.lockd .ico { background: rgba(47, 123, 245, .16); color: #1f64d6; }
-.hint { margin: 0; font-size: .85rem; color: var(--muted); }
-
-/* Cartes latérales */
-.card { border-radius: 1.8rem; padding: 1.15rem; }
-.card h2 { margin: 0 0 .8rem; font-size: .85rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: .5rem; }
-.card h2 svg { width: 1.1rem; height: 1.1rem; }
-.printer { display: flex; align-items: center; gap: 1rem; }
-.ring { position: relative; width: 6rem; height: 6rem; flex: none; }
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 9; }
-.ring .bg { stroke: var(--track); }
-.ring .fg { stroke: #34c759; stroke-linecap: round; stroke-dasharray: 251.3; transition: stroke-dashoffset .8s; }
-.ring.paused .fg { stroke: var(--warm); }
-.ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.45rem; font-variant-numeric: tabular-nums; }
-.pinfo { min-width: 0; }
-.pinfo strong { display: block; font-size: 1.05rem; }
-.pinfo span { display: block; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
-.row { display: flex; gap: .6rem; margin-top: .9rem; flex-wrap: wrap; }
-.btn { padding: .65rem 1.1rem; border-radius: 99px; font-weight: 650; background: var(--track); box-shadow: inset 0 1px 1px var(--g-inner); transition: transform .4s var(--spring); }
-.btn:active { transform: scale(1.06); }
-.btn.primary { background: linear-gradient(180deg, color-mix(in srgb, var(--tint) 80%, #fff), var(--tint)); color: #fff;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--tint) 40%, transparent), inset 0 1px 1px rgba(255, 255, 255, .55); }
-.media { display: flex; gap: .9rem; align-items: center; }
-.poster { width: 4.6rem; height: 4.6rem; border-radius: 1rem; flex: none; background: linear-gradient(145deg, #e5a00d, #b0561d 60%, #5a2a1a); display: grid; place-items: center; color: rgba(255, 255, 255, .9); }
-.poster svg { width: 2rem; height: 2rem; }
-.minfo { min-width: 0; }
-.minfo strong { display: block; font-size: 1.02rem; line-height: 1.2; }
-.minfo span { color: var(--muted); font-size: .9rem; }
-.bar { height: .4rem; border-radius: 9px; background: var(--track); margin: .9rem 0 .2rem; overflow: hidden; }
-.bar i { display: block; height: 100%; width: 0; background: var(--text); border-radius: 9px; transition: width .8s linear; }
-.transport { display: flex; justify-content: center; gap: 1.4rem; align-items: center; }
-.transport button { width: 2.8rem; height: 2.8rem; display: grid; place-items: center; border-radius: 50%; }
-.transport .play { width: 3.4rem; height: 3.4rem; background: var(--text); color: var(--bg); box-shadow: 0 8px 20px rgba(0, 0, 0, .22), inset 0 1px 1px rgba(255, 255, 255, .35); transition: transform .4s var(--spring); }
-.transport button:active { transform: scale(1.1); }
-
-/* Dock */
-.app-btn { display: flex; flex-direction: column; align-items: center; gap: .35rem; font-size: .8rem; font-weight: 600; width: 4.6rem; }
-.app-ico { position: relative; width: 3.5rem; height: 3.5rem; border-radius: 1.05rem; display: grid; place-items: center; color: #fff;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .7), inset 0 -6px 12px -6px rgba(0, 0, 0, .25), 0 6px 14px rgba(0, 0, 0, .18); transition: transform .4s var(--spring); }
-.app-ico:not(.real)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(160deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 42%), radial-gradient(120% 80% at 50% 120%, rgba(255, 255, 255, .25), transparent 60%);
-  box-shadow: inset 0 0 0 .6px rgba(255, 255, 255, .55); }
-.app-ico:not(.real)::before { content: ""; position: absolute; inset: 22%; border-radius: 30%; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, .06)); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .6), 0 2px 6px rgba(0, 0, 0, .12);
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.app-ico svg { position: relative; z-index: 1; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .3)); }
-.app-ico svg { width: 1.8rem; height: 1.8rem; }
-.app-btn:active .app-ico { transform: scale(1.12); }
-.app-btn { flex: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-.app-btn > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.app-ico.real { background: none !important; box-shadow: none; }
-.app-ico img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.app-btn.missing .app-ico { opacity: .45; filter: grayscale(1); }
-.app-btn.pinned .app-ico { outline: 2px solid var(--tint); outline-offset: 3px; }
-.dock .app-btn.all .app-ico { background: var(--g-fill-hi); color: var(--text); box-shadow: inset 0 0 0 .5px var(--g-rim-lo), inset 0 1px 1px var(--g-inner); }
-
-/* Tiroir d'applications */
-#drawer { width: min(58rem, calc(100vw - 2rem)); max-height: min(44rem, calc(100vh - 2rem)); display: none; flex-direction: column; gap: 1rem; }
-#drawer[open] { display: flex; }
-.drawer-head { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
-.drawer-head h3 { flex: 1; }
-.drawer-head input { flex: 1 1 14rem; padding: .65rem 1rem; border-radius: 99px; border: 0; font: inherit; color: var(--text); background: var(--track); outline: none; }
-.drawer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: 1.2rem .6rem; overflow-y: auto; padding: .5rem .3rem; scrollbar-width: none; }
-.drawer-grid .app-btn { width: auto; }
-.drawer-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem .9rem; border-radius: 1.2rem; background: var(--track); font-size: .9rem; }
-.drawer-banner[hidden] { display: none; }
-
-/* Apparence */
-#look { width: min(28rem, calc(100vw - 2rem)); }
-#look label { display: block; margin-top: 1.1rem; font-weight: 650; }
-#look .legend { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); font-weight: 500; margin-top: -.1rem; }
-.seg { display: flex; gap: .2rem; padding: .25rem; margin-top: 1rem; border-radius: 99px; background: var(--track); }
-.seg button { flex: 1; padding: .55rem .8rem; border-radius: 99px; font-weight: 650; color: var(--muted); transition: background .35s var(--spring), color .25s; }
-.seg button[aria-pressed="true"] { background: rgba(255, 255, 255, .95); color: var(--on-text); box-shadow: 0 3px 10px rgba(30, 40, 90, .14); }
-.switch-row { display: flex; align-items: center; justify-content: space-between; margin-top: 1.1rem; font-weight: 650; }
-.switch { width: 3.4rem; height: 2rem; border-radius: 99px; background: var(--track); position: relative; transition: background .3s; }
+/* Réglages */
+dialog { border: 0; padding: 1.6rem; border-radius: 2rem; width: min(30rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow: auto; color: #0d1220;
+  background: rgba(245, 247, 252, .86); -webkit-backdrop-filter: blur(28px) saturate(200%); backdrop-filter: blur(28px) saturate(200%);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, .4), inset 0 1px 1px #fff; }
+dialog[open] { animation: pop .45s var(--spring); }
+@keyframes pop { from { opacity: 0; transform: scale(.9) translateY(1rem); } }
+dialog::backdrop { background: rgba(0, 0, 0, .35); }
+dialog h2 { margin: 0 0 .3rem; font-size: 1.3rem; }
+.field { margin-top: 1.1rem; }
+.field > label, .field > .lbl { display: block; font-weight: 650; margin-bottom: .45rem; }
+.field small { color: #6b7286; font-weight: 500; }
+.row { display: flex; gap: .6rem; align-items: center; }
+.row input[type=text] { flex: 1; min-width: 0; padding: .7rem 1rem; border-radius: 99px; border: 0; background: rgba(110, 120, 150, .18); color: #0d1220; outline: none; }
+.btn { padding: .7rem 1.15rem; border-radius: 99px; font-weight: 650; background: rgba(110, 120, 150, .2); white-space: nowrap; }
+.btn.primary { background: var(--tint); color: #fff; }
+.btn.danger { color: #d0213a; }
+.seg { display: flex; gap: .2rem; padding: .25rem; border-radius: 99px; background: rgba(110, 120, 150, .18); }
+.seg button { flex: 1; padding: .55rem .6rem; border-radius: 99px; font-weight: 650; color: #6b7286; }
+.seg button[aria-pressed="true"] { background: #fff; color: #0d1220; box-shadow: 0 3px 10px rgba(30, 40, 90, .14); }
+input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.1rem; font-weight: 650; }
+.switch { flex: none; width: 3.4rem; height: 2rem; border-radius: 99px; background: rgba(110, 120, 150, .3); position: relative; transition: background .3s; }
 .switch::after { content: ""; position: absolute; top: .2rem; left: .2rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); transition: transform .45s var(--spring); }
 .switch[aria-checked="true"] { background: #34c759; }
 .switch[aria-checked="true"]::after { transform: translateX(1.4rem); }
-.swatches { display: flex; gap: .7rem; margin-top: .9rem; }
-.swatches button { width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--c); box-shadow: inset 0 1px 1px rgba(255, 255, 255, .6), 0 3px 8px rgba(0, 0, 0, .18); transition: transform .4s var(--spring); }
-.swatches button[aria-pressed="true"] { outline: 2.5px solid var(--text); outline-offset: 3px; }
-.swatches button:active { transform: scale(1.15); }
+.foot { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-top: 1.5rem; }
 
-/* Fiche de réglage */
-dialog { border: 0; padding: 1.5rem; border-radius: 2.2rem; width: min(26rem, calc(100vw - 2rem)); color: var(--text);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-strong) 85%, transparent), color-mix(in srgb, var(--glass-strong) 70%, transparent));
-  -webkit-backdrop-filter: blur(28px) saturate(200%); backdrop-filter: var(--lg-f) blur(28px) saturate(200%);
-  box-shadow: 0 40px 90px rgba(0, 0, 0, .32), inset 0 1px 1px var(--g-inner), inset 0 0 0 .5px var(--g-rim-lo); overflow: visible; }
-dialog[open] { animation: pop .5s var(--spring); }
-@keyframes pop { from { opacity: 0; transform: scale(.86) translateY(1.5rem); } }
-dialog::backdrop { background: rgba(10, 14, 28, .28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade .3s; }
-@keyframes fade { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { dialog[open], dialog::backdrop { animation: none; } }
-dialog h3 { margin: 0; font-size: 1.15rem; }
-dialog .sub { margin: .15rem 0 0; color: var(--muted); font-size: .9rem; }
-dialog .big { margin: 1rem 0 .6rem; font-size: 3.2rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-dialog input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4.2rem; margin: .4rem 0; border-radius: 1.4rem; cursor: pointer; overflow: hidden;
-  background: linear-gradient(90deg, rgba(255, 255, 255, .96) var(--p, 50%), var(--track) var(--p, 50%));
-  box-shadow: inset 0 0 0 .5px var(--g-rim-lo), inset 0 2px 6px rgba(0, 0, 0, .12); }
-dialog input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 0; height: 4.2rem; box-shadow: -.3rem 0 0 0 rgba(30, 40, 90, .25); }
-dialog input[type=range]::-moz-range-thumb { width: 0; height: 4.2rem; border: 0; background: transparent; }
-dialog input[type=range]::-moz-range-track { background: transparent; }
-dialog .row { justify-content: space-between; }
-
-/* Veille */
-.ambient { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; overflow: hidden; background: #06070c; color: #fff; }
-.amb-blobs { position: absolute; inset: 0; pointer-events: none; }
-.amb-blobs i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; animation: drift 44s ease-in-out infinite alternate; }
-.amb-blobs i:nth-child(1) { width: 60vmax; height: 60vmax; background: #1d3a7a; left: -20vmax; top: -12vmax; }
-.amb-blobs i:nth-child(2) { width: 50vmax; height: 50vmax; background: #5a1f4a; right: -18vmax; bottom: -18vmax; animation-duration: 56s; }
-.amb-blobs i:nth-child(3) { width: 34vmax; height: 34vmax; background: #33236e; left: 38vw; top: 30vh; animation-duration: 48s; opacity: .4; }
-.amb-stage { position: relative; display: grid; place-items: center; text-align: center; gap: 1.3rem; animation: float 90s ease-in-out infinite alternate; }
-@keyframes float { from { transform: translate(-1.2vmin, -.8vmin); } to { transform: translate(1.2vmin, .8vmin); } }
-.amb-time { display: flex; align-items: center; font-size: min(36vh, 26vw); line-height: .9; font-weight: 200; letter-spacing: -.045em; font-variant-numeric: tabular-nums;
-  background: linear-gradient(180deg, #fff 25%, rgba(255, 255, 255, .45)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.amb-time .colon { padding-bottom: .08em; animation: blink 2s steps(1) infinite; }
-@keyframes blink { 50% { opacity: .25; } }
-.amb-date { font-size: 1.8rem; font-weight: 500; color: rgba(255, 255, 255, .82); }
-.amb-info { font-size: 1.1rem; color: rgba(255, 255, 255, .55); font-variant-numeric: tabular-nums; min-height: 1.4em; }
-.amb-analog { display: none; width: min(66vh, 66vw); aspect-ratio: 1; }
-.amb-analog svg { width: 100%; height: 100%; overflow: visible; }
-.ambient[data-style="analog"] .amb-digital { display: none; }
-.ambient[data-style="analog"] .amb-analog { display: block; }
-.disc { fill: rgba(255, 255, 255, .05); stroke: rgba(255, 255, 255, .3); stroke-width: 1.5; }
-.tick { stroke: rgba(255, 255, 255, .4); stroke-width: 1.2; stroke-linecap: round; }
-.tick.big { stroke: #fff; stroke-width: 3; }
-.hand { stroke-linecap: round; transform-origin: 160px 160px; }
-.hand.h { stroke: #fff; stroke-width: 7; }
-.hand.m { stroke: #fff; stroke-width: 4.5; }
-.hand.s { stroke: #ff9f43; stroke-width: 2; }
-.hub { fill: #ff9f43; }
-.amb-ctrl { position: absolute; bottom: max(1.4rem, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 1rem; font-size: .9rem; color: rgba(255, 255, 255, .55); white-space: nowrap; }
-.amb-ctrl button { padding: .55rem 1.1rem; border-radius: 99px; font-weight: 600; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); color: #fff; }
-.ambient.night { filter: brightness(.5) sepia(.6) saturate(1.7) hue-rotate(-14deg); }
-@media (prefers-reduced-motion: reduce) { .amb-stage, .amb-blobs i, .amb-time .colon { animation: none; } }
-
-.toast { position: fixed; left: 50%; bottom: 7.4rem; transform: translate(-50%, 1rem); z-index: 30; padding: .75rem 1.2rem; border-radius: 99px; font-weight: 600;
-  background: color-mix(in srgb, var(--glass-strong) 75%, transparent); -webkit-backdrop-filter: blur(20px) saturate(200%); backdrop-filter: blur(20px) saturate(200%);
-  box-shadow: var(--g-shadow), inset 0 1px 1px var(--g-inner); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; max-width: 90vw; text-align: center; }
-.toast.show { opacity: 1; transform: translate(-50%, 0); transition: opacity .25s, transform .5s var(--spring); }
-
-/* Portrait : une seule colonne qui défile */
-@media (max-aspect-ratio: 1/1) {
-  body { overflow: auto; }
-  body { overflow: hidden; }
-  .face-home { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; align-content: start; overflow-y: auto; scrollbar-width: none; padding-bottom: 1rem; }
-  .face-home::-webkit-scrollbar { display: none; }
-  .main, .side { overflow: visible; margin: 0 -1rem; }
-  .complications { grid-template-columns: minmax(0, 1fr); max-width: 24rem; }
-  .face-play { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 1.6rem; text-align: center; align-content: center; }
-  .pl-art { width: min(60vw, 40vh); }
-  .pl-info { width: min(100%, 26rem); }
-  .clock { font-size: 3.6rem; }
-}
+.toast { position: fixed; left: 50%; top: 13vh; transform: translate(-50%, -1rem); padding: .8rem 1.3rem; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .25s, transform .4s var(--spring); max-width: 90vw; text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
-<div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-
-<div class="app">
- <div class="faces" id="faces">
- <div class="face face-home" id="face-home" aria-label="Maison" data-name="Maison">
-  <section class="main" aria-label="Maison">
-    <header class="head">
-      <div>
-        <p class="date" id="date"></p>
-        <h1 class="clock" id="clock">--:--</h1>
-        <p class="hello" id="hello"></p>
-        <p class="status" id="status"></p>
-      </div>
-      <div class="tools">
-        <span class="chip glass" id="weather"></span>
-        <button class="round glass" id="btn-theme" aria-label="Apparence"></button>
-        <button class="round glass" id="btn-full" aria-label="Plein écran"></button>
-        <button class="round glass" id="btn-sleep" aria-label="Mise en veille"></button>
-      </div>
-    </header>
-    <div class="scenes" id="scenes" role="group" aria-label="Scènes"></div>
-    <nav class="rooms glass" id="rooms" role="tablist" aria-label="Pièces"></nav>
-    <div class="grid" id="grid"></div>
-    <p class="hint">Touche une tuile pour l'allumer ou l'éteindre. Appui long pour régler.</p>
-  </section>
-
-  <aside class="side" aria-label="Activité">
-    <div class="card glass" id="printer-card">
-      <h2 id="printer-title"></h2>
-      <div class="printer">
-        <div class="ring" id="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="40"/><circle class="fg" id="ring-fg" cx="50" cy="50" r="40"/></svg><b id="ring-val">0 %</b></div>
-        <div class="pinfo"><strong id="p-job"></strong><span id="p-left"></span><span id="p-temps"></span></div>
-      </div>
-      <div class="row"><button class="btn primary" id="p-toggle"></button></div>
-    </div>
-    <div class="card glass" id="media-card">
-      <h2 id="media-title"></h2>
-      <div class="media">
-        <div class="poster" id="poster"></div>
-        <div class="minfo"><strong id="m-title"></strong><span id="m-sub"></span></div>
-      </div>
-      <div class="bar"><i id="m-bar"></i></div>
-      <div class="transport">
-        <button id="m-prev" aria-label="Précédent"></button>
-        <button class="play" id="m-play" aria-label="Lecture ou pause"></button>
-        <button id="m-next" aria-label="Suivant"></button>
-      </div>
-    </div>
-  </aside>
-
- </div>
-
- <section class="face face-photo" id="face-photo" aria-label="Photos" data-name="Photos">
-  <div class="ph-stage" id="ph-stage">
-   <div class="ph-slide" id="ph-a"></div><div class="ph-slide" id="ph-b"></div>
-   <div class="ph-shade"></div>
-   <div class="ph-empty" id="ph-empty" hidden><strong>Ajoute tes photos</strong><span>Touche l'écran puis « Ajouter des photos ». Elles restent sur cet appareil.</span></div>
-   <div class="ph-dim"></div>
-   <div class="ph-clock glass"><div class="ph-time" id="ph-time">--:--</div><div class="ph-meta" id="ph-meta"></div></div>
-   <div class="ph-tools" id="ph-tools">
-    <label class="btn" for="ph-file">Ajouter des photos</label>
-    <button class="btn" id="ph-clear">Tout effacer</button>
-    <button class="btn" id="ph-look">Apparence</button>
-   </div>
-   <input type="file" id="ph-file" accept="image/*" multiple hidden>
-  </div>
- </section>
-
- <section class="face face-clock" id="face-clock" aria-label="Horloge" data-name="Horloge">
-  <div class="fc-main">
-   <div class="fc-date" id="fc-date"></div>
-   <div class="fc-time" id="fc-time">--:--</div>
-   <div class="fc-weather glass" id="fc-weather"></div>
-  </div>
-  <div class="complications" id="complications"></div>
- </section>
-
- <section class="face face-play" id="face-play" aria-label="Lecture" data-name="Lecture">
-  <div class="pl-art" id="pl-art"></div>
-  <div class="pl-info">
-   <h2 id="pl-title"></h2>
-   <p id="pl-sub"></p>
-   <div class="bar"><i id="pl-bar"></i></div>
-   <div class="pl-times"><span id="pl-pos"></span><span id="pl-len"></span></div>
-   <div class="pl-ctrl glass">
-    <button id="pl-prev" aria-label="Précédent"></button>
-    <button class="play" id="pl-play" aria-label="Lecture ou pause"></button>
-    <button id="pl-next" aria-label="Suivant"></button>
-   </div>
-  </div>
- </section>
- </div>
-
-  <nav class="dots glass" id="dots" aria-label="Cadrans"></nav>
-  <nav class="dock glass" id="dock" aria-label="Applications"></nav>
+<div class="stage" id="stage">
+  <div class="slide" id="ph-a"></div><div class="slide" id="ph-b"></div>
+  <div class="shade"></div>
+  <div class="dim"></div>
+  <div class="empty" id="ph-empty" hidden>Touche l'écran pour ajouter des photos ou régler la ville de la météo.</div>
 </div>
 
-<dialog id="look" aria-labelledby="look-title">
-  <h3 id="look-title">Apparence</h3>
-  <p class="sub">Thème, matière du verre et teinte</p>
-  <div class="seg" id="look-theme" role="group" aria-label="Thème">
-    <button data-theme="auto">Auto</button><button data-theme="light">Clair</button><button data-theme="dark">Sombre</button>
+<main class="hud" aria-live="off">
+  <div class="panel glass">
+    <div class="time" id="time">--:--</div>
+    <div class="line" id="date"></div>
+    <div class="line wxline" id="wx-line" hidden><span class="wx" id="wx"></span></div>
   </div>
-  <label for="look-glass">Verre</label>
-  <input type="range" id="look-glass" min="0" max="100" step="1" aria-label="Intensité du verre">
-  <div class="legend"><span>Transparent</span><span>Givré</span></div>
-  <div class="switch-row"><span id="look-tinted-label">Verre teinté</span><button class="switch" id="look-tinted" role="switch" aria-labelledby="look-tinted-label"></button></div>
-  <div class="swatches" id="look-tint" role="group" aria-label="Couleur d'accent"></div>
-  <div class="switch-row"><span id="look-lite-label">Mode léger <small style="color:var(--muted);font-weight:500">(appareil peu puissant)</small></span><button class="switch" id="look-lite" role="switch" aria-labelledby="look-lite-label"></button></div>
-  <div class="switch-row"><span id="look-cadre-label">Mode cadre photo <small style="color:var(--muted);font-weight:500">(heure + photos, sans applis)</small></span><button class="switch" id="look-cadre" role="switch" aria-labelledby="look-cadre-label"></button></div>
-  <div class="row" style="justify-content:flex-end"><button class="btn primary" id="look-close">Terminé</button></div>
-</dialog>
+</main>
 
-<dialog id="sheet" aria-labelledby="sheet-name">
-  <h3 id="sheet-name"></h3>
-  <p class="sub" id="sheet-room"></p>
-  <div class="big" id="sheet-val"></div>
-  <input type="range" id="sheet-range" aria-label="Réglage">
-  <div class="row"><button class="btn" id="sheet-toggle"></button><button class="btn primary" id="sheet-close">Terminé</button></div>
-</dialog>
-
-<dialog id="drawer" aria-labelledby="drawer-title">
-  <div class="drawer-head">
-    <h3 id="drawer-title">Applications</h3>
-    <input type="search" id="drawer-search" placeholder="Rechercher" aria-label="Rechercher une application" autocomplete="off">
-    <button class="btn primary" id="drawer-close">Terminé</button>
-  </div>
-  <div class="drawer-banner" id="drawer-banner" hidden>
-    <span>Home+ n'est pas encore l'écran d'accueil de la tablette.</span>
-    <button class="btn primary" id="drawer-home">Définir par défaut</button>
-  </div>
-  <div class="drawer-grid" id="drawer-grid"></div>
-  <p class="hint" id="drawer-hint">Touche pour ouvrir. Appui long pour ajouter au dock ou l'en retirer.</p>
-</dialog>
-
-<div class="ambient" id="ambient" data-style="digital" hidden>
-  <div class="amb-blobs" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="amb-stage">
-    <div class="amb-digital"><div class="amb-time" aria-hidden="true"><span id="ah">--</span><span class="colon">:</span><span id="am">--</span></div></div>
-    <div class="amb-analog" aria-hidden="true">
-      <svg viewBox="0 0 320 320"><circle class="disc" cx="160" cy="160" r="156"/><g id="ticks"></g>
-        <line class="hand h" id="hand-h" x1="160" y1="172" x2="160" y2="92"/>
-        <line class="hand m" id="hand-m" x1="160" y1="176" x2="160" y2="56"/>
-        <line class="hand s" id="hand-s" x1="160" y1="184" x2="160" y2="42"/>
-        <circle class="hub" cx="160" cy="160" r="7"/></svg>
-    </div>
-    <div class="amb-date" id="a-date"></div>
-    <div class="amb-info" id="a-info"></div>
-  </div>
-  <div class="amb-ctrl"><button id="amb-style"></button><span>Touche l'écran pour quitter</span></div>
+<div class="tools" id="tools">
+  <label class="pill glass" for="ph-file" id="add-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4zM12 10v6M9 13h6"/></svg>Ajouter des photos</label>
+  <button class="pill glass" id="set-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"/></svg>Réglages</button>
 </div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="ph-file" accept="image/*" multiple hidden>
+
+<dialog id="settings" aria-labelledby="set-title">
+  <h2 id="set-title">Réglages</h2>
+  <div class="field">
+    <label for="city">Ville pour la météo</label>
+    <div class="row"><input type="text" id="city" placeholder="Ex. Clermont-Ferrand" autocomplete="off"><button class="btn primary" id="city-ok">Valider</button></div>
+    <small id="city-state"></small>
+  </div>
+  <div class="field">
+    <span class="lbl">Position de l'heure</span>
+    <div class="seg" id="pos"><button data-v="corner">En bas à gauche</button><button data-v="center">Au centre, en très grand</button></div>
+  </div>
+  <div class="field">
+    <span class="lbl">Changer de photo toutes les</span>
+    <div class="seg" id="every"><button data-v="10">10 s</button><button data-v="20">20 s</button><button data-v="60">1 min</button><button data-v="300">5 min</button></div>
+  </div>
+  <div class="switch-row"><span id="plate-l">Fond en verre derrière l'heure</span><button class="switch" id="plate" role="switch" aria-labelledby="plate-l"></button></div>
+  <div class="field" id="glass-field">
+    <label for="glass">Verre <small>transparent ↔ givré</small></label>
+    <input type="range" id="glass" min="0" max="100" step="1">
+  </div>
+  <div class="switch-row"><span id="night-l">Assombrir la nuit <small>(22 h – 7 h)</small></span><button class="switch" id="nightsw" role="switch" aria-labelledby="night-l"></button></div>
+  <div class="switch-row"><span id="lite-l">Mode léger <small>(appareil peu puissant)</small></span><button class="switch" id="lite" role="switch" aria-labelledby="lite-l"></button></div>
+  <div class="foot">
+    <button class="btn danger" id="clear">Effacer les photos de cet appareil</button>
+    <button class="btn" id="android" hidden>Réglages Android</button>
+    <button class="btn primary" id="set-close">Terminé</button>
+  </div>
+</dialog>
+
+<div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ---------- Configuration (exemples à remplacer par tes vraies données) ---------- */
-const USER = "Mathieu";
-const WEATHER = { temp: 15, label: "Nuageux", hi: 17, lo: 9 };
-const ROOMS = ["Tout", "Salon", "Bureau", "Atelier", "Chambre"];
-const IDLE_MS = 120000;
-const FAR_MS = 30000;
-const PHOTO_MS = 15000;     // durée de chaque photo du diaporama       // sans toucher l'écran : vue « de loin » (textes agrandis, détails masqués)
-
-const DEVICES = [
-  { id: "l1", name: "Lumière salon",   room: "Salon",   type: "light",  on: true,  level: 70 },
-  { id: "th", name: "Thermostat",      room: "Salon",   type: "thermo", on: true,  target: 19, current: 18.5 },
-  { id: "b1", name: "Volets salon",    room: "Salon",   type: "blind",  level: 100 },
-  { id: "tv", name: "TV salon",        room: "Salon",   type: "tv",     on: false },
-  { id: "lk", name: "Porte d'entrée",  room: "Salon",   type: "lock",   on: true },
-  { id: "l2", name: "Lampe bureau",    room: "Bureau",  type: "light",  on: false, level: 100 },
-  { id: "l3", name: "Ruban LED",       room: "Bureau",  type: "light",  on: true,  level: 40 },
-  { id: "pc", name: "Prise du PC",     room: "Bureau",  type: "plug",   on: true },
-  { id: "pi", name: "Prise imprimante",room: "Atelier", type: "plug",   on: true },
-  { id: "l4", name: "Lumière chambre", room: "Chambre", type: "light",  on: false, level: 60 },
-  { id: "b2", name: "Volets chambre",  room: "Chambre", type: "blind",  level: 0 }
-];
-
-const SCENES = [
-  { id: "hello",  name: "Bienvenue", icon: "home",  set: { l1: { on: true, level: 70 }, th: { on: true, target: 20 }, b1: { level: 100 } } },
-  { id: "cine",   name: "Cinéma",    icon: "film",  set: { l1: { on: true, level: 15 }, l3: { on: true, level: 20 }, b1: { level: 0 }, tv: { on: true } } },
-  { id: "night",  name: "Bonne nuit",icon: "moon",  set: { l1: { on: false }, l2: { on: false }, l3: { on: false }, l4: { on: false }, b1: { level: 0 }, b2: { level: 0 }, tv: { on: false }, lk: { on: true }, th: { target: 17 } } },
-  { id: "away",   name: "Départ",    icon: "exit",  set: { l1: { on: false }, l2: { on: false }, l3: { on: false }, l4: { on: false }, tv: { on: false }, lk: { on: true }, th: { target: 16 } } }
-];
-
-/* Dock par défaut. « pkg » est le nom du paquet Android ; « android:settings » ouvre les réglages de la tablette.
-   Le dock modifié depuis le tiroir est enregistré dans localStorage (« prisme-dock »). */
-const APPS = [
-  { pkg: "com.plexapp.android",                name: "Plex",           icon: "play",    color: "linear-gradient(145deg,#f2b01e,#c57a0a)" },
-  { pkg: "org.jellyfin.mobile",                name: "Jellyfin",       icon: "film",    color: "linear-gradient(145deg,#8d6cf0,#3b6fe0)" },
-  { pkg: "io.homeassistant.companion.android", name: "Home Assistant", icon: "home",    color: "linear-gradient(145deg,#41bdf5,#1f7ac9)" },
-  { pkg: "com.parsec.app",                     name: "Parsec",         icon: "monitor", color: "linear-gradient(145deg,#ff6b6b,#c9263f)" },
-  { pkg: "bbl.intl.bambulab.com",              name: "Bambu",          icon: "printer", color: "linear-gradient(145deg,#3ed67a,#139a52)" },
-  { pkg: "android:settings",                   name: "Réglages",       icon: "sliders", color: "linear-gradient(145deg,#9aa3b5,#5b6478)" }
-];
-
-const printer = { job: "Support_ecran.3mf", progress: 63, paused: false, nozzle: 220, bed: 60, totalMin: 190 };
-const media = { title: "Dune : Deuxième partie", sub: "Plex · Salon", pos: 41, playing: false };
-
-/* ---------- Icônes ---------- */
-const ICONS = {
-  light: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
-  plug: '<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0V7zM12 17v5"/>',
-  thermo: '<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>',
-  blind: '<path d="M4 4h16M4 8h16M4 12h16M12 12v7M10 19h4"/>',
-  lock: '<path d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3"/>',
-  tv: '<path d="M3 5h18v12H3zM8 21h8M12 17v4"/>',
-  home: '<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',
-  film: '<path d="M4 4h16v16H4zM8 4v16M16 4v16M4 9h4M4 15h4M16 9h4M16 15h4"/>',
-  moon: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>',
-  exit: '<path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/>',
-  play: '<path d="M8 5v14l11-7z" fill="currentColor"/>',
-  pause: '<path d="M8 5v14M16 5v14" stroke-width="3.2"/>',
-  prev: '<path d="M7 5v14M19 5v14L9 12z" fill="currentColor"/>',
-  next: '<path d="M17 5v14M5 5v14l10-7z" fill="currentColor"/>',
-  monitor: '<path d="M3 4h18v12H3zM9 20h6M12 16v4"/>',
-  printer: '<path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/>',
-  sliders: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4"/>',
-  cloud: '<path d="M7 18a4 4 0 0 1-.5-8A6 6 0 0 1 18 9.5 4 4 0 0 1 17 18H7z"/>',
-  full: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
-  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
-  auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
-  apps: '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/>',
-  sleep: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/><path d="M15 3h4l-4 4h4"/>'
-};
-const ic = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 const $ = (id) => document.getElementById(id);
-
-/* ---------- Etat ---------- */
-let room = "Tout";
-let activeScene = null;
-const byId = (id) => DEVICES.find((d) => d.id === id);
-const isOn = (d) => d.type === "blind" ? d.level > 0 : !!d.on;
-
-function stateText(d) {
-  switch (d.type) {
-    case "light": return d.on ? `${d.level} %` : "Éteinte";
-    case "thermo": return d.on ? `Chauffe · ${String(d.target).replace(".", ",")}°` : `Arrêté · ${String(d.current).replace(".", ",")}°`;
-    case "blind": return d.level > 0 ? `Ouverts · ${d.level} %` : "Fermés";
-    case "lock": return d.on ? "Verrouillée" : "Déverrouillée";
-    case "plug": return d.on ? "Allumée" : "Éteinte";
-    case "tv": return d.on ? "Allumée" : "Éteinte";
-  }
-  return "";
-}
-const iconFor = (d) => d.type === "light" ? "light" : d.type === "plug" ? "plug" : d.type;
-
-function toggle(d) {
-  activeScene = null;
-  if (d.type === "blind") d.level = d.level > 0 ? 0 : 100;
-  else d.on = !d.on;
-  renderAll();
-}
-
-/* ---------- Rendu ---------- */
-function renderScenes() {
-  $("scenes").innerHTML = SCENES.map((s) =>
-    `<button class="scene glass${activeScene === s.id ? " active" : ""}" data-scene="${s.id}" aria-pressed="${activeScene === s.id}">${ic(s.icon)}${s.name}</button>`).join("");
-}
-function renderRooms() {
-  $("rooms").innerHTML = ROOMS.map((r) =>
-    `<button class="room" role="tab" data-room="${r}" aria-selected="${r === room}">${r}</button>`).join("");
-}
-function renderGrid() {
-  const list = DEVICES.filter((d) => room === "Tout" || d.room === room);
-  $("grid").innerHTML = list.map((d) => {
-    const on = isOn(d);
-    const cls = ["tile", "glass", on ? "on" : "", d.type === "lock" ? "lockd" : "", d.type === "thermo" ? "cool" : ""].join(" ");
-    return `<button class="${cls}" data-id="${d.id}" aria-pressed="${on}">
-      <span class="ico">${ic(iconFor(d))}</span>
-      <span><span class="name">${d.name}</span><span class="state">${stateText(d)}</span></span></button>`;
-  }).join("");
-}
-function renderStatus() {
-  const lights = DEVICES.filter((d) => d.type === "light" && d.on).length;
-  const lock = byId("lk");
-  const parts = [lights === 0 ? "Aucune lumière allumée" : lights === 1 ? "1 lumière allumée" : `${lights} lumières allumées`, lock.on ? "Porte verrouillée" : "Porte déverrouillée"];
-  $("status").textContent = parts.join(" · ");
-}
-function renderAll() { renderScenes(); renderGrid(); renderStatus(); renderComplications(); }
-
-function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
-function renderPrinter() {
-  const p = printer;
-  $("ring-fg").style.strokeDashoffset = 251.3 * (1 - p.progress / 100);
-  $("ring").classList.toggle("paused", p.paused);
-  $("ring-val").textContent = `${Math.round(p.progress)} %`;
-  $("p-job").textContent = p.job;
-  $("p-left").textContent = p.progress >= 100 ? "Terminé" : p.paused ? "En pause" : `Fin dans ${fmtDur((100 - p.progress) / 100 * p.totalMin)}`;
-  $("p-temps").textContent = `Buse ${p.nozzle}° · Plateau ${p.bed}°`;
-  $("p-toggle").textContent = p.paused ? "Reprendre" : "Pause";
-  renderComplications();
-}
-function renderMedia() {
-  $("m-title").textContent = media.title;
-  $("m-sub").textContent = media.sub;
-  $("m-bar").style.width = media.pos + "%";
-  $("m-play").innerHTML = ic(media.playing ? "pause" : "play");
-  $("pl-title").textContent = media.title;
-  $("pl-sub").textContent = media.sub;
-  $("pl-bar").style.width = media.pos + "%";
-  $("pl-play").innerHTML = ic(media.playing ? "pause" : "play");
-  const len = media.lengthMin || 166;
-  $("pl-pos").textContent = fmtDur(len * media.pos / 100); $("pl-len").textContent = `-${fmtDur(len * (1 - media.pos / 100))}`;
-  renderComplications();
-}
-/* Complications du cadran Horloge : impression, lumières, lecture. */
-function renderComplications() {
-  if (!$("complications")) return;
-  const lights = DEVICES.filter((d) => d.type === "light" && d.on).length;
-  const th = DEVICES.find((d) => d.type === "thermo");
-  $("complications").innerHTML = [
-    `<div class="cpl glass"><span class="ci green">${ic("printer")}</span><div><div class="cv">${Math.round(printer.progress)} %</div><div class="cl">${printer.paused ? "En pause" : printer.progress >= 100 ? "Terminé" : "Fin dans " + fmtDur((100 - printer.progress) / 100 * printer.totalMin)}</div></div></div>`,
-    `<div class="cpl glass"><span class="ci warm">${ic("light")}</span><div><div class="cv">${lights}</div><div class="cl">${lights > 1 ? "lumières allumées" : "lumière allumée"}</div></div></div>`,
-    th ? `<div class="cpl glass"><span class="ci blue">${ic("thermo")}</span><div><div class="cv">${String(th.current).replace(".", ",")}°</div><div class="cl">${th.on ? "Chauffe vers " + String(th.target).replace(".", ",") + "°" : "Chauffage arrêté"}</div></div></div>` : ""
-  ].join("");
-}
-
-/* ---------- Horloge, salutation, thème ---------- */
-const fmtTime = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
-const fmtDate = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-function tick() {
-  const now = new Date(), h = now.getHours();
-  const t = fmtTime.format(now), raw = fmtDate.format(now);
-  const d = raw.charAt(0).toUpperCase() + raw.slice(1);
-  $("clock").textContent = t;
-  $("date").textContent = d;
-  $("fc-time").textContent = t; $("fc-date").textContent = d;
-  $("ph-time").textContent = t;
-  $("ph-meta").innerHTML = `<span>${d}</span><span>·</span>${ic("cloud")}<span>${WEATHER.temp}°</span>`;
-  $("face-photo").classList.toggle("night", h >= 22 || h < 7);
-  ambientTick(now, d);
-  const g = h < 5 ? "Bonne nuit" : h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
-  $("hello").textContent = `${g}, ${USER}`;
-}
-
-const THEMES = ["auto", "light", "dark"];
-let theme = "auto";
-try { theme = THEMES.includes(localStorage.getItem("prisme-theme")) ? localStorage.getItem("prisme-theme") : "auto"; } catch (e) {}
-function applyTheme() {
-  if (theme === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = theme;
-  $("btn-theme").innerHTML = ic(theme === "auto" ? "auto" : theme === "light" ? "sun" : "moon");
-  $("btn-theme").setAttribute("aria-label", `Thème : ${theme === "auto" ? "automatique" : theme === "light" ? "clair" : "sombre"}`);
-}
-
-/* ---------- Toast ---------- */
+const NATIVE = window.PrismeAndroid || null;   // présent dans l'APK Android
 let toastTimer;
-function toast(msg) {
-  const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
-}
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
 
-/* ---------- Fiche de réglage ---------- */
-let sheetDev = null;
-function openSheet(d) {
-  if (!["light", "thermo", "blind"].includes(d.type)) return;
-  sheetDev = d;
-  const r = $("sheet-range");
-  $("sheet-name").textContent = d.name; $("sheet-room").textContent = d.room;
-  if (d.type === "light") { r.min = 1; r.max = 100; r.step = 1; r.value = d.level; }
-  if (d.type === "blind") { r.min = 0; r.max = 100; r.step = 5; r.value = d.level; }
-  if (d.type === "thermo") { r.min = 10; r.max = 28; r.step = 0.5; r.value = d.target; }
-  r.setAttribute("aria-label", d.type === "light" ? "Luminosité" : d.type === "blind" ? "Ouverture" : "Température cible");
-  updateSheet();
-  try { $("sheet").showModal(); } catch (e) { $("sheet").setAttribute("open", ""); }
-}
-function updateSheet() {
-  const d = sheetDev; if (!d) return;
-  const r = $("sheet-range"); r.style.setProperty("--p", `${(r.value - r.min) / (r.max - r.min) * 100}%`);
-  $("sheet-val").textContent = d.type === "thermo" ? `${String(d.target).replace(".", ",")}°` : `${d.type === "light" ? d.level : d.level} %`;
-  $("sheet-toggle").textContent = d.type === "thermo" ? (d.on ? "Arrêter" : "Chauffer") : d.type === "blind" ? (d.level > 0 ? "Fermer" : "Ouvrir") : (d.on ? "Éteindre" : "Allumer");
-}
-$("sheet-range").addEventListener("input", (e) => {
-  const d = sheetDev, v = parseFloat(e.target.value); activeScene = null;
-  if (d.type === "light") { d.level = v; d.on = true; }
-  if (d.type === "blind") d.level = v;
-  if (d.type === "thermo") { d.target = v; d.on = true; }
-  updateSheet(); renderAll();
-});
-$("sheet-toggle").addEventListener("click", () => {
-  const d = sheetDev; toggle(d);
-  $("sheet-range").value = d.type === "thermo" ? d.target : d.level; updateSheet();
-});
-$("sheet-close").addEventListener("click", () => $("sheet").close());
-$("sheet").addEventListener("click", (e) => { if (e.target === $("sheet")) $("sheet").close(); });
+/* ---------- Réglages (gardés sur l'appareil) ---------- */
+const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
+const cfg = { city: null, pos: "corner", every: 20, plate: true, glass: 30, night: true, lite: !!WEAK };
+try { Object.assign(cfg, JSON.parse(localStorage.getItem("homeplus")) || {}); } catch (e) {}
+function save() { try { localStorage.setItem("homeplus", JSON.stringify(cfg)); } catch (e) {} }
+let PHOTO_MS = cfg.every * 1000;
 
-/* ---------- Interactions ---------- */
-let press = null, pressTimer = null;
-const grid = $("grid");
-grid.addEventListener("contextmenu", (e) => e.preventDefault());
-grid.addEventListener("pointerdown", (e) => {
-  const t = e.target.closest(".tile"); if (!t) return;
-  press = { id: t.dataset.id, long: false };
-  pressTimer = setTimeout(() => { if (press) { press.long = true; openSheet(byId(press.id)); } }, 450);
-});
-const endPress = (commit) => {
-  clearTimeout(pressTimer);
-  if (commit && press && !press.long) toggle(byId(press.id));
-  press = null;
-};
-grid.addEventListener("pointerup", () => endPress(true));
-grid.addEventListener("pointercancel", () => endPress(false));
-grid.addEventListener("pointerleave", () => endPress(false));
-grid.addEventListener("keydown", (e) => {
-  const t = e.target.closest(".tile");
-  if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(byId(t.dataset.id)); }
-});
+/* ---------- Liquid Glass ---------- */
+/* Réfraction : pour chaque taille de verre, une carte de déplacement (rouge = x, vert = y) est dessinée dans un canvas
+   à partir de la forme arrondie, puis appliquée au fond par un filtre SVG dans backdrop-filter. Les bords du verre
+   « tirent » le décor vers l'intérieur, comme une lentille bombée. Seul Chromium applique un filtre SVG en backdrop-filter :
+   ailleurs, le verre reste flou sans réfraction. */
+const LiquidGlass = (() => {
+  const ua = navigator.userAgent;
+  const reduce = matchMedia("(prefers-reduced-transparency: reduce)").matches;
+  const chromeMajor = +((ua.match(/Chrome\/(\d+)/) || [])[1] || 0);
+  const ok = chromeMajor >= 111 && !/Firefox\//.test(ua) && !reduce && CSS.supports("backdrop-filter", "url(#x)");
+  const NS = "http://www.w3.org/2000/svg";
+  const made = new Map(), tracked = new Set();
+  let defs = null, gain = 1;
+  if (ok) {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    defs = document.createElementNS(NS, "defs"); svg.appendChild(defs); document.body.appendChild(svg);
+    document.documentElement.classList.add("lg");
+  }
+  function mapURL(w, h, r, bezel) {
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    const ctx = c.getContext("2d"), img = ctx.createImageData(w, h), px = img.data;
+    const hw = w / 2, hh = h / 2;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const cx = x + .5 - hw, cy = y + .5 - hh, ax = Math.abs(cx), ay = Math.abs(cy);
+      const qx = ax - (hw - r), qy = ay - (hh - r);
+      let dist, nx, ny;
+      if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy); dist = l - r; nx = qx / l; ny = qy / l; }
+      else if (qx > qy) { dist = qx - r; nx = 1; ny = 0; }
+      else { dist = qy - r; nx = 0; ny = 1; }
+      nx *= Math.sign(cx) || 1; ny *= Math.sign(cy) || 1;
+      const depth = -dist;                      // distance au bord, vers l'intérieur
+      let m = 0;
+      if (depth >= 0 && depth < bezel) { const t = 1 - depth / bezel; m = t * t * (3 - 2 * t) * t; }
+      px[i] = 128 - nx * m * 127; px[i + 1] = 128 - ny * m * 127; px[i + 2] = 128; px[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    return c.toDataURL();
+  }
+  function filterFor(w, h, r, strength) {
+    const bezel = Math.max(6, Math.min(r * .95, Math.min(w, h) / 2.2, 26));
+    const key = `${w}x${h}r${Math.round(r)}s${strength}`;
+    if (made.has(key)) return made.get(key);
+    const id = `lg-${made.size}`;
+    const f = document.createElementNS(NS, "filter");
+    for (const [k, v] of Object.entries({ id, x: 0, y: 0, width: w, height: h, filterUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) f.setAttribute(k, v);
+    const im = document.createElementNS(NS, "feImage");
+    for (const [k, v] of Object.entries({ x: 0, y: 0, width: w, height: h, result: "map", preserveAspectRatio: "none" })) im.setAttribute(k, v);
+    im.setAttribute("href", mapURL(w, h, r, bezel));
+    const dm = document.createElementNS(NS, "feDisplacementMap");
+    for (const [k, v] of Object.entries({ in: "SourceGraphic", in2: "map", scale: (bezel * strength).toFixed(1), xChannelSelector: "R", yChannelSelector: "G" })) dm.setAttribute(k, v);
+    f.append(im, dm); defs.appendChild(f);
+    const url = `url(#${id})`; made.set(key, url); return url;
+  }
+  function apply(el) {
+    if (document.documentElement.classList.contains("lite")) return;   // mode léger : pas de calcul de réfraction
+    const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+    if (!w || !h || w * h > 1.2e6) return;
+    const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);
+    const strength = el.matches(".pill") ? 1.5 : 1.15;
+    el.style.setProperty("--lg-f", filterFor(w, h, r, Math.round(strength * gain * 20) / 20));
+  }
+  const ro = ok ? new ResizeObserver((es) => es.forEach((e) => apply(e.target))) : null;
+  const watch = (root) => {
+    if (!ok || root.nodeType !== 1) return;
+    const els = root.matches(".glass") ? [root] : [];
+    els.push(...root.querySelectorAll(".glass"));
+    els.forEach((el) => { ro.observe(el); tracked.add(el); });
+  };
+  if (ok) {
+    new MutationObserver((ms) => ms.forEach((m) => {
+      m.addedNodes.forEach(watch);
+      m.removedNodes.forEach((n) => { if (n.nodeType === 1) { const gone = n.matches(".glass") ? [n] : []; gone.push(...n.querySelectorAll(".glass")); gone.forEach((e) => { ro.unobserve(e); tracked.delete(e); }); } });
+    })).observe(document.body, { childList: true, subtree: true });
+    watch(document.body);
+  }
 
-$("scenes").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-scene]"); if (!b) return;
-  const s = SCENES.find((x) => x.id === b.dataset.scene);
-  for (const [id, patch] of Object.entries(s.set)) Object.assign(byId(id), patch);
-  activeScene = s.id; renderAll(); toast(`Scène « ${s.name} » activée`);
-});
-$("rooms").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-room]"); if (!b) return;
-  room = b.dataset.room; renderRooms(); renderGrid();
-});
+  /* Lumière au toucher : le verre gonfle et s'éclaire sous le doigt. */
+  let pressed = null;
+  document.addEventListener("pointerdown", (e) => {
+    const g = e.target.closest(".glass"); if (!g) return;
+    const b = g.getBoundingClientRect();
+    g.style.setProperty("--mx", `${e.clientX - b.left}px`); g.style.setProperty("--my", `${e.clientY - b.top}px`);
+    g.classList.add("pressing"); pressed = g;
+  }, { passive: true });
+  const release = () => { if (pressed) { pressed.classList.remove("pressing"); pressed = null; } };
+  document.addEventListener("pointerup", release, { passive: true });
+  document.addEventListener("pointercancel", release, { passive: true });
 
-$("p-toggle").addEventListener("click", () => { printer.paused = !printer.paused; renderPrinter(); toast(printer.paused ? "Impression en pause" : "Impression reprise"); });
-$("m-play").addEventListener("click", () => { media.playing = !media.playing; renderMedia(); });
-$("m-prev").addEventListener("click", () => { media.pos = 0; renderMedia(); });
-$("m-next").addEventListener("click", () => { media.pos = Math.min(100, media.pos + 10); renderMedia(); });
-$("pl-play").addEventListener("click", () => $("m-play").click());
-$("pl-prev").addEventListener("click", () => $("m-prev").click());
-$("pl-next").addEventListener("click", () => $("m-next").click());
-
-/* ---------- Cadrans (glisser à gauche / à droite) ---------- */
-const faceEls = [...document.querySelectorAll(".face")];
-let faceIdx = 0;
-try { faceIdx = Math.min(faceEls.length - 1, Math.max(0, +localStorage.getItem("prisme-face") || 0)); } catch (e) {}
-$("dots").innerHTML = faceEls.map((f, i) => `<button data-face="${i}" aria-label="${f.dataset.name}"></button>`).join("");
-function showDots() { $("dots").querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-current", String(i === faceIdx))); }
-function goFace(i, smooth = true) {
-  faceIdx = i; showDots();
-  $("faces").scrollTo({ left: faceEls[i].offsetLeft - faceEls[0].offsetLeft, behavior: smooth ? "smooth" : "auto" });
-  if (!document.documentElement.classList.contains("cadre")) try { localStorage.setItem("prisme-face", String(i)); } catch (e) {}
-}
-$("dots").addEventListener("click", (e) => { const b = e.target.closest("[data-face]"); if (b) goFace(+b.dataset.face); });
-let faceScroll = 0;
-$("faces").addEventListener("scroll", () => {
-  cancelAnimationFrame(faceScroll);
-  faceScroll = requestAnimationFrame(() => {
-    const i = Math.round($("faces").scrollLeft / $("faces").clientWidth);
-    if (i !== faceIdx && faceEls[i]) { faceIdx = i; showDots(); try { localStorage.setItem("prisme-face", String(i)); } catch (e) {} }
+  /* Reflets : la lumière suit l'inclinaison de la tablette (ou la souris sur ordinateur). */
+  let raf = 0, lx = 0, ly = -1;
+  const setLight = (x, y) => {
+    lx = x; ly = y; if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0; const s = document.documentElement.style;
+      s.setProperty("--lx", lx.toFixed(3)); s.setProperty("--ly", ly.toFixed(3));
+    });
+  };
+  window.addEventListener("deviceorientation", (e) => {
+    if (e.gamma == null) return;
+    setLight(Math.max(-1, Math.min(1, e.gamma / 35)), -1 + Math.max(-1, Math.min(1, (e.beta - 45) / 45)) * .6);
   });
-}, { passive: true });
-window.addEventListener("resize", () => goFace(faceIdx, false));
+  window.addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    setLight((e.clientX / innerWidth - .5) * 1.6, -1 + (e.clientY / innerHeight) * .5);
+  }, { passive: true });
+  /* Plus le verre est transparent, plus la réfraction se voit. */
+  const setGain = (g) => { gain = g; if (ok) tracked.forEach(apply); };
+  return { refract: ok, setGain };
+})();
+
 
 /* ---------- Photos (diaporama) ----------
    Deux sources, cumulées :
@@ -974,385 +394,123 @@ const Photos = (() => {
   setInterval(load, 2 * 60000);   // nouvelles photos envoyées depuis le téléphone
   return { add, clear, next };
 })();
+
+
+/* ---------- Heure et date ---------- */
+const fmtTime = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const fmtDate = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+function tick() {
+  const now = new Date(), h = now.getHours(), d = fmtDate.format(now);
+  $("time").textContent = fmtTime.format(now);
+  $("date").textContent = d.charAt(0).toUpperCase() + d.slice(1);
+  document.documentElement.classList.toggle("night", cfg.night && (h >= 22 || h < 7));
+}
+
+/* ---------- Météo (Open-Meteo : gratuit, sans clé) ---------- */
+const WX_ICONS = {
+  sun: '<circle cx="12" cy="12" r="4.2" fill="#ffd35a" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="#ffd35a"/>',
+  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" fill="#e8ecff" stroke="none"/>',
+  partly: '<circle cx="9" cy="9" r="3.6" fill="#ffd35a" stroke="none"/><path d="M9 2.8v1.6M2.8 9h1.6M4.6 4.6l1.1 1.1M13.4 4.6l-1.1 1.1" stroke="#ffd35a"/><path d="M8.5 19a3.5 3.5 0 0 1-.4-7 5 5 0 0 1 9.6 1.4A2.9 2.9 0 0 1 17.2 19z" fill="#fff" stroke="none"/>',
+  cloud: '<path d="M7 19a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 19z" fill="#fff" stroke="none"/>',
+  rain: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5" stroke="#7cc4ff"/>',
+  snow: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M8 18.5h.01M12 20h.01M16 18.5h.01" stroke="#fff" stroke-width="2.6"/>',
+  storm: '<path d="M7 15a4 4 0 0 1-.5-8 6 6 0 0 1 11.5 1.5A3.4 3.4 0 0 1 17.4 15z" fill="#fff" stroke="none"/><path d="M12.5 15l-2 3.5h3l-2 3.5" stroke="#ffd35a"/>',
+  fog: '<path d="M4 9h16M6 13h12M4 17h16" stroke="#fff"/>'
+};
+const wxIcon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WX_ICONS[n]}</svg>`;
+function wxKind(code, day) {
+  if (code === 0) return [day ? "sun" : "moon", day ? "Ensoleillé" : "Dégagé"];
+  if (code <= 2) return [day ? "partly" : "cloud", "Éclaircies"];
+  if (code === 3) return ["cloud", "Couvert"];
+  if (code === 45 || code === 48) return ["fog", "Brouillard"];
+  if (code >= 51 && code <= 57) return ["rain", "Bruine"];
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ["rain", code >= 80 ? "Averses" : "Pluie"];
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ["snow", "Neige"];
+  if (code >= 95) return ["storm", "Orage"];
+  return ["cloud", ""];
+}
+function showWeather(w) {
+  if (!w) { $("wx").innerHTML = ""; $("wx-line").hidden = true; return; }
+  const [icon, label] = wxKind(w.code, w.day);
+  $("wx").innerHTML = `${wxIcon(icon)}<span>${Math.round(w.temp)}°</span><small>${label}${w.hi != null ? ` · ${Math.round(w.lo)}° / ${Math.round(w.hi)}°` : ""}</small>`;
+  $("wx-line").hidden = false;
+}
+async function loadWeather() {
+  if (!cfg.city) { showWeather(null); return; }
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${cfg.city.lat}&longitude=${cfg.city.lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto`;
+    const j = await fetch(u).then((r) => r.json());
+    const w = { temp: j.current.temperature_2m, code: j.current.weather_code, day: !!j.current.is_day, hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0], at: Date.now() };
+    try { localStorage.setItem("homeplus-wx", JSON.stringify(w)); } catch (e) {}
+    showWeather(w);
+  } catch (e) {
+    let w = null; try { w = JSON.parse(localStorage.getItem("homeplus-wx")); } catch (e2) {}
+    showWeather(w && Date.now() - w.at < 6 * 3600e3 ? w : null);   // hors ligne : dernière météo de moins de 6 h
+  }
+}
+async function setCity(name) {
+  $("city-state").textContent = "Recherche…";
+  try {
+    const j = await fetch(`https://geocoding-api.open-meteo.com/v1/search?count=1&language=fr&name=${encodeURIComponent(name)}`).then((r) => r.json());
+    const c = j.results && j.results[0];
+    if (!c) { $("city-state").textContent = "Ville introuvable."; return; }
+    cfg.city = { name: c.name, lat: c.latitude, lon: c.longitude }; save();
+    $("city").value = c.name; $("city-state").textContent = `Météo de ${c.name}${c.admin1 ? ", " + c.admin1 : ""}.`;
+    loadWeather();
+  } catch (e) { $("city-state").textContent = "Pas de connexion à Internet."; }
+}
+
+/* ---------- Réglages ---------- */
+function apply() {
+  const root = document.documentElement;
+  root.dataset.pos = cfg.pos;
+  root.classList.toggle("noplate", !cfg.plate);
+  root.classList.toggle("lite", !!cfg.lite);
+  root.style.setProperty("--g-v", (cfg.glass / 100).toFixed(2));
+  PHOTO_MS = cfg.every * 1000;
+  LiquidGlass.setGain(1.4 - cfg.glass / 100 * .7);
+  $("pos").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === cfg.pos)));
+  $("every").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.v === cfg.every)));
+  $("plate").setAttribute("aria-checked", String(!!cfg.plate));
+  $("nightsw").setAttribute("aria-checked", String(!!cfg.night));
+  $("lite").setAttribute("aria-checked", String(!!cfg.lite));
+  $("glass").value = cfg.glass; $("glass-field").hidden = !cfg.plate;
+  tick();
+}
+$("pos").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { cfg.pos = b.dataset.v; save(); apply(); } });
+$("every").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (b) { cfg.every = +b.dataset.v; save(); apply(); Photos.next(); } });
+$("plate").addEventListener("click", () => { cfg.plate = !cfg.plate; save(); apply(); });
+$("nightsw").addEventListener("click", () => { cfg.night = !cfg.night; save(); apply(); });
+$("lite").addEventListener("click", () => { cfg.lite = !cfg.lite; save(); apply(); });
+$("glass").addEventListener("input", (e) => { cfg.glass = +e.target.value; apply(); clearTimeout(apply.t); apply.t = setTimeout(save, 300); });
+$("city-ok").addEventListener("click", () => { const v = $("city").value.trim(); if (v) setCity(v); });
+$("city").addEventListener("keydown", (e) => { if (e.key === "Enter") $("city-ok").click(); });
+$("clear").addEventListener("click", () => Photos.clear());
+$("set-close").addEventListener("click", () => $("settings").close());
+$("settings").addEventListener("click", (e) => { if (e.target === $("settings")) $("settings").close(); });
+$("set-btn").addEventListener("click", () => {
+  $("city").value = cfg.city ? cfg.city.name : ""; $("city-state").textContent = cfg.city ? "" : "Choisis une ville pour afficher la météo.";
+  try { $("settings").showModal(); } catch (e) { $("settings").setAttribute("open", ""); }
+});
+if (NATIVE) { $("android").hidden = false; $("android").addEventListener("click", () => NATIVE.openSettings("home")); }
+
+/* Toucher l'écran : les boutons apparaissent quelques secondes. */
+let toolsTimer;
+function showTools() { $("tools").classList.add("on"); clearTimeout(toolsTimer); toolsTimer = setTimeout(() => $("tools").classList.remove("on"), 7000); }
+document.addEventListener("pointerdown", (e) => { if (!e.target.closest("dialog")) showTools(); }, { passive: true });
 $("ph-file").addEventListener("change", (e) => { Photos.add([...e.target.files]); e.target.value = ""; });
-$("ph-clear").addEventListener("click", () => Photos.clear());
-$("ph-look").addEventListener("click", () => $("btn-theme").click());
-let phTools = 0;
-$("ph-stage").addEventListener("click", (e) => {
-  if (e.target.closest(".ph-tools")) return;
-  $("ph-tools").classList.add("on"); clearTimeout(phTools); phTools = setTimeout(() => $("ph-tools").classList.remove("on"), 6000);
-});
 
-/* ---------- Vue de loin / de près ---------- */
-let farTimer;
-function nearNow() { document.documentElement.classList.remove("far"); clearTimeout(farTimer); farTimer = setTimeout(() => document.documentElement.classList.add("far"), FAR_MS); }
-document.addEventListener("pointerdown", nearNow, { capture: true, passive: true });
-document.addEventListener("keydown", nearNow, { capture: true });
-
-/* ---------- Applications (dock et tiroir) ---------- */
-/* Dans l'APK, window.PrismeAndroid est fourni par MainActivity. Dans un navigateur, tout reste en aperçu. */
-const NATIVE = window.PrismeAndroid || null;
-const SETTINGS_PKG = "android:settings";
-const iconCache = new Map();
-let installed = [];           // [{ pkg, label }] des applications lançables (APK seulement)
-let dockApps = loadDock();
-
-function loadDock() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("prisme-dock"));
-    if (Array.isArray(saved) && saved.every((a) => a && typeof a.pkg === "string")) return saved;
-  } catch (e) {}
-  return APPS.map((a) => ({ ...a }));
-}
-function saveDock() { try { localStorage.setItem("prisme-dock", JSON.stringify(dockApps)); } catch (e) {} }
-function refreshInstalled() {
-  if (!NATIVE) return;
-  try { installed = JSON.parse(NATIVE.listApps()).sort((a, b) => a.label.localeCompare(b.label, "fr")); } catch (e) { installed = []; }
-}
-const isInstalled = (pkg) => pkg === SETTINGS_PKG || !NATIVE || installed.some((a) => a.pkg === pkg);
-function realIcon(pkg) {
-  if (!NATIVE || pkg === SETTINGS_PKG) return "";
-  if (!iconCache.has(pkg)) { let src = ""; try { src = NATIVE.appIcon(pkg) || ""; } catch (e) {} iconCache.set(pkg, src); }
-  return iconCache.get(pkg);
-}
-const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-function appButton(a, extra = "") {
-  const src = isInstalled(a.pkg) ? realIcon(a.pkg) : "";
-  const ico = src ? `<span class="app-ico real"><img src="${src}" alt=""></span>`
-    : `<span class="app-ico" style="background:${a.color || "linear-gradient(145deg,#9aa3b5,#5b6478)"}">${ic(a.icon || "apps")}</span>`;
-  const cls = `app-btn${isInstalled(a.pkg) ? "" : " missing"}${extra}`;
-  return `<button class="${cls}" data-pkg="${esc(a.pkg)}" title="${esc(a.name)}">${ico}<span>${esc(a.name)}</span></button>`;
-}
-function renderDock() {
-  $("dock").innerHTML = dockApps.map((a) => appButton(a)).join("")
-    + `<button class="app-btn all" data-all="1"><span class="app-ico">${ic("apps")}</span><span>Toutes</span></button>`;
-}
-function drawerList() {
-  if (!NATIVE) return APPS.filter((a) => a.pkg !== SETTINGS_PKG);
-  return installed.map((a) => {
-    const d = dockApps.find((x) => x.pkg === a.pkg);
-    return { pkg: a.pkg, name: a.label, icon: d && d.icon, color: d && d.color };
-  });
-}
-function renderDrawer() {
-  const q = $("drawer-search").value.trim().toLocaleLowerCase("fr");
-  const list = drawerList().filter((a) => !q || a.name.toLocaleLowerCase("fr").includes(q));
-  $("drawer-grid").innerHTML = list.length
-    ? list.map((a) => appButton(a, dockApps.some((x) => x.pkg === a.pkg) ? " pinned" : "")).join("")
-    : `<p class="hint">Aucune application trouvée.</p>`;
-}
-function openDrawer() {
-  refreshInstalled();
-  $("drawer-search").value = "";
-  let isDefault = true;
-  try { isDefault = !NATIVE || NATIVE.isDefaultLauncher(); } catch (e) {}
-  $("drawer-banner").hidden = isDefault;
-  renderDrawer();
-  try { $("drawer").showModal(); } catch (e) { $("drawer").setAttribute("open", ""); }
-}
-function launch(pkg, name) {
-  if (!NATIVE) { toast(`Aperçu : « ${name} » s'ouvrira depuis l'application Android`); return; }
-  if (pkg === SETTINGS_PKG) { NATIVE.openSettings(""); return; }
-  if (!NATIVE.launchApp(pkg)) { toast(`« ${name} » n'est pas installée : ouverture du Play Store`); NATIVE.openStore(pkg); }
-}
-function togglePin(pkg, name) {
-  const i = dockApps.findIndex((a) => a.pkg === pkg);
-  if (i >= 0) { dockApps.splice(i, 1); toast(`« ${name} » retirée du dock`); }
-  else {
-    const preset = APPS.find((a) => a.pkg === pkg);
-    dockApps.push(preset ? { ...preset } : { pkg, name }); toast(`« ${name} » ajoutée au dock`);
-  }
-  saveDock(); renderDock(); if ($("drawer").open) renderDrawer();
-}
-
-/* Appui court = ouvrir, appui long (450 ms) = épingler / retirer du dock. */
-function appPresses(container) {
-  let p = null, timer = null;
-  container.addEventListener("contextmenu", (e) => e.preventDefault());
-  container.addEventListener("pointerdown", (e) => {
-    const b = e.target.closest(".app-btn"); if (!b) return;
-    p = { b, x: e.clientX, y: e.clientY, long: false };
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (!p || !p.b.dataset.pkg) return;
-      p.long = true; if (navigator.vibrate) navigator.vibrate(15);
-      togglePin(p.b.dataset.pkg, p.b.title);
-    }, 450);
-  });
-  container.addEventListener("pointermove", (e) => {
-    if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 12) { clearTimeout(timer); p = null; }
-  });
-  const end = (commit) => {
-    clearTimeout(timer);
-    if (commit && p && !p.long) {
-      if (p.b.dataset.all) openDrawer();
-      else { launch(p.b.dataset.pkg, p.b.title); if ($("drawer").open) $("drawer").close(); }
-    }
-    p = null;
-  };
-  container.addEventListener("pointerup", () => end(true));
-  container.addEventListener("pointercancel", () => end(false));
-  container.addEventListener("keydown", (e) => {
-    const b = e.target.closest(".app-btn");
-    if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); b.dataset.all ? openDrawer() : launch(b.dataset.pkg, b.title); }
-  });
-}
-appPresses($("dock"));
-appPresses($("drawer-grid"));
-$("drawer-search").addEventListener("input", renderDrawer);
-$("drawer-close").addEventListener("click", () => $("drawer").close());
-$("drawer").addEventListener("click", (e) => { if (e.target === $("drawer")) $("drawer").close(); });
-$("drawer-home").addEventListener("click", () => { if (NATIVE) NATIVE.openSettings("home"); });
-
-/* Événements envoyés par MainActivity */
-function closeDialogs() {
-  let closed = false;
-  for (const d of document.querySelectorAll("dialog[open]")) { d.close(); closed = true; }
-  return closed;
-}
-window.addEventListener("prisme-back", () => { if (!closeDialogs()) { if (faceIdx) goFace(0); wake(); } nearNow(); });
-window.addEventListener("prisme-home", () => { closeDialogs(); wake(); nearNow(); goFace(0); $("drawer-search").blur(); });
-window.addEventListener("prisme-resume", () => { refreshInstalled(); renderDock(); if ($("drawer").open) renderDrawer(); wake(); });
-/* ---------- Apparence (iOS 27 : intensité du verre et mode teinté) ---------- */
-const TINTS = [["Bleu", "#2f7bf5"], ["Indigo", "#5e5ce6"], ["Rose", "#ff375f"], ["Orange", "#ff9f0a"], ["Vert", "#30d158"], ["Graphite", "#8e8e93"]];
-const CADRE_URL = /[?&#]cadre\b/.test(location.search + location.hash);
-const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-let look = { glass: 35, tinted: false, tint: "#2f7bf5", lite: !!WEAK, cadre: false };
-try { Object.assign(look, JSON.parse(localStorage.getItem("prisme-look")) || {}); } catch (e) {}
-function applyLook() {
-  const root = document.documentElement, v = Math.max(0, Math.min(100, +look.glass || 0)) / 100;
-  root.style.setProperty("--g-v", v.toFixed(2));
-  root.style.setProperty("--tint", look.tint);
-  root.classList.toggle("tinted", !!look.tinted);
-  root.classList.toggle("lite", !!look.lite);
-  root.classList.toggle("cadre", !!look.cadre || CADRE_URL);
-  $("look-cadre").setAttribute("aria-checked", String(!!look.cadre || CADRE_URL));
-  root.classList.toggle("dark-fallback", theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches));
-  $("look-lite").setAttribute("aria-checked", String(!!look.lite));
-  LiquidGlass.setGain(1.35 - v * .75);
-  const r = $("look-glass"); r.value = look.glass; r.style.setProperty("--p", `${look.glass}%`);
-  $("look-tinted").setAttribute("aria-checked", String(!!look.tinted));
-  $("look-tint").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === look.tint)));
-  $("look-theme").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.theme === theme)));
-}
-function saveLook() { try { localStorage.setItem("prisme-look", JSON.stringify(look)); } catch (e) {} }
-$("look-tint").innerHTML = TINTS.map(([n, c]) => `<button data-c="${c}" style="--c:${c}" aria-label="${n}"></button>`).join("");
-$("btn-theme").addEventListener("click", () => { applyLook(); try { $("look").showModal(); } catch (e) { $("look").setAttribute("open", ""); } });
-$("look-theme").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-theme]"); if (!b) return;
-  theme = b.dataset.theme; try { localStorage.setItem("prisme-theme", theme); } catch (e) {}
-  applyTheme(); applyLook();
-});
-let lookSave = 0;
-$("look-glass").addEventListener("input", (e) => { look.glass = +e.target.value; applyLook(); clearTimeout(lookSave); lookSave = setTimeout(saveLook, 300); });
-$("look-cadre").addEventListener("click", () => {
-  if (CADRE_URL) { toast("Mode cadre imposé par l'adresse (?cadre)"); return; }
-  look.cadre = !look.cadre; applyLook(); saveLook(); if (look.cadre) goFace(faceEls.indexOf($("face-photo")), false); else goFace(0, false);
-});
-$("look-lite").addEventListener("click", () => { look.lite = !look.lite; applyLook(); saveLook(); });
-$("look-tinted").addEventListener("click", () => { look.tinted = !look.tinted; applyLook(); saveLook(); });
-$("look-tint").addEventListener("click", (e) => { const b = e.target.closest("[data-c]"); if (!b) return; look.tint = b.dataset.c; applyLook(); saveLook(); });
-$("look-close").addEventListener("click", () => $("look").close());
-$("look").addEventListener("click", (e) => { if (e.target === $("look")) $("look").close(); });
-$("btn-full").addEventListener("click", () => {
-  try {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else document.documentElement.requestFullscreen().catch(() => toast("Plein écran refusé par le navigateur"));
-  } catch (e) { toast("Plein écran indisponible ici"); }
-});
-
-/* Veille */
-let idleTimer;
-function wake() { $("ambient").hidden = true; resetIdle(); }
-function sleepNow() {
-  if (document.documentElement.classList.contains("cadre")) return;   // le cadre photo est déjà l'écran de repos
-  $("ambient").hidden = false;
-  if (ambStyle === "analog" && !ambRaf) analogLoop();
-}
-function resetIdle() { clearTimeout(idleTimer); idleTimer = setTimeout(sleepNow, IDLE_MS); }
-$("btn-sleep").addEventListener("click", (e) => { e.stopPropagation(); sleepNow(); });
-$("ambient").addEventListener("pointerdown", wake);
-document.addEventListener("pointerdown", () => { if ($("ambient").hidden) resetIdle(); });
-
-/* Veille : horloge numérique ou analogique */
-const AMB_STYLES = ["digital", "analog"];
-let ambStyle = "digital", ambRaf = 0;
-try { const v = localStorage.getItem("prisme-amb"); if (AMB_STYLES.includes(v)) ambStyle = v; } catch (e) {}
-function buildAnalog() {
-  const g = $("ticks");
-  for (let i = 0; i < 60; i++) {
-    const big = i % 5 === 0, a = i * 6 * Math.PI / 180, r1 = big ? 126 : 135, r2 = 146;
-    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    l.setAttribute("x1", (160 + Math.sin(a) * r1).toFixed(2)); l.setAttribute("y1", (160 - Math.cos(a) * r1).toFixed(2));
-    l.setAttribute("x2", (160 + Math.sin(a) * r2).toFixed(2)); l.setAttribute("y2", (160 - Math.cos(a) * r2).toFixed(2));
-    l.setAttribute("class", big ? "tick big" : "tick");
-    g.appendChild(l);
-  }
-}
-function applyAmbStyle() {
-  $("ambient").dataset.style = ambStyle;
-  $("amb-style").textContent = ambStyle === "digital" ? "Horloge analogique" : "Horloge numérique";
-}
-function ambientTick(now, dateText) {
-  const h = now.getHours();
-  $("ah").textContent = String(h).padStart(2, "0");
-  $("am").textContent = String(now.getMinutes()).padStart(2, "0");
-  $("a-date").textContent = dateText;
-  const info = [`${WEATHER.temp}° ${WEATHER.label.toLowerCase()}`];
-  if (printer.progress < 100 && !printer.paused) info.push(`Impression ${Math.round(printer.progress)} % · fin dans ${fmtDur((100 - printer.progress) / 100 * printer.totalMin)}`);
-  $("a-info").textContent = info.join("  ·  ");
-  $("ambient").classList.toggle("night", h >= 22 || h < 7);
-}
-function analogLoop() {
-  if ($("ambient").hidden || ambStyle !== "analog") { ambRaf = 0; return; }
-  const n = new Date(), s = n.getSeconds() + n.getMilliseconds() / 1000, m = n.getMinutes() + s / 60, h = (n.getHours() % 12) + m / 60;
-  $("hand-s").style.transform = `rotate(${s * 6}deg)`;
-  $("hand-m").style.transform = `rotate(${m * 6}deg)`;
-  $("hand-h").style.transform = `rotate(${h * 30}deg)`;
-  ambRaf = requestAnimationFrame(analogLoop);
-}
-$("amb-style").addEventListener("pointerdown", (e) => e.stopPropagation());
-$("amb-style").addEventListener("click", () => {
-  ambStyle = ambStyle === "digital" ? "analog" : "digital";
-  try { localStorage.setItem("prisme-amb", ambStyle); } catch (e) {}
-  applyAmbStyle();
-  if (ambStyle === "analog" && !ambRaf) analogLoop();
-});
-
-/* ---------- Liquid Glass ---------- */
-/* Réfraction : pour chaque taille de verre, une carte de déplacement (rouge = x, vert = y) est dessinée dans un canvas
-   à partir de la forme arrondie, puis appliquée au fond par un filtre SVG dans backdrop-filter. Les bords du verre
-   « tirent » le décor vers l'intérieur, comme une lentille bombée. Seul Chromium applique un filtre SVG en backdrop-filter :
-   ailleurs, le verre reste flou sans réfraction. */
-const LiquidGlass = (() => {
-  const ua = navigator.userAgent;
-  const reduce = matchMedia("(prefers-reduced-transparency: reduce)").matches;
-  const chromeMajor = +((ua.match(/Chrome\/(\d+)/) || [])[1] || 0);
-  const ok = chromeMajor >= 111 && !/Firefox\//.test(ua) && !reduce && CSS.supports("backdrop-filter", "url(#x)");
-  const NS = "http://www.w3.org/2000/svg";
-  const made = new Map(), tracked = new Set();
-  let defs = null, gain = 1;
-  if (ok) {
-    const svg = document.createElementNS(NS, "svg");
-    svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
-    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
-    defs = document.createElementNS(NS, "defs"); svg.appendChild(defs); document.body.appendChild(svg);
-    document.documentElement.classList.add("lg");
-  }
-  function mapURL(w, h, r, bezel) {
-    const c = document.createElement("canvas"); c.width = w; c.height = h;
-    const ctx = c.getContext("2d"), img = ctx.createImageData(w, h), px = img.data;
-    const hw = w / 2, hh = h / 2;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      const cx = x + .5 - hw, cy = y + .5 - hh, ax = Math.abs(cx), ay = Math.abs(cy);
-      const qx = ax - (hw - r), qy = ay - (hh - r);
-      let dist, nx, ny;
-      if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy); dist = l - r; nx = qx / l; ny = qy / l; }
-      else if (qx > qy) { dist = qx - r; nx = 1; ny = 0; }
-      else { dist = qy - r; nx = 0; ny = 1; }
-      nx *= Math.sign(cx) || 1; ny *= Math.sign(cy) || 1;
-      const depth = -dist;                      // distance au bord, vers l'intérieur
-      let m = 0;
-      if (depth >= 0 && depth < bezel) { const t = 1 - depth / bezel; m = t * t * (3 - 2 * t) * t; }
-      px[i] = 128 - nx * m * 127; px[i + 1] = 128 - ny * m * 127; px[i + 2] = 128; px[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-    return c.toDataURL();
-  }
-  function filterFor(w, h, r, strength) {
-    const bezel = Math.max(6, Math.min(r * .95, Math.min(w, h) / 2.2, 26));
-    const key = `${w}x${h}r${Math.round(r)}s${strength}`;
-    if (made.has(key)) return made.get(key);
-    const id = `lg-${made.size}`;
-    const f = document.createElementNS(NS, "filter");
-    for (const [k, v] of Object.entries({ id, x: 0, y: 0, width: w, height: h, filterUnits: "userSpaceOnUse", "color-interpolation-filters": "sRGB" })) f.setAttribute(k, v);
-    const im = document.createElementNS(NS, "feImage");
-    for (const [k, v] of Object.entries({ x: 0, y: 0, width: w, height: h, result: "map", preserveAspectRatio: "none" })) im.setAttribute(k, v);
-    im.setAttribute("href", mapURL(w, h, r, bezel));
-    const dm = document.createElementNS(NS, "feDisplacementMap");
-    for (const [k, v] of Object.entries({ in: "SourceGraphic", in2: "map", scale: (bezel * strength).toFixed(1), xChannelSelector: "R", yChannelSelector: "G" })) dm.setAttribute(k, v);
-    f.append(im, dm); defs.appendChild(f);
-    const url = `url(#${id})`; made.set(key, url); return url;
-  }
-  function apply(el) {
-    if (document.documentElement.classList.contains("lite")) return;   // mode léger : pas de calcul de réfraction
-    const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
-    if (!w || !h || w * h > 1.2e6) return;
-    const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, w / 2, h / 2);
-    const strength = el.matches(".dock, .rooms, .round, .chip, .scene") ? 1.5 : el.matches("dialog") ? .9 : 1.1;
-    el.style.setProperty("--lg-f", filterFor(w, h, r, Math.round(strength * gain * 20) / 20));
-  }
-  const ro = ok ? new ResizeObserver((es) => es.forEach((e) => apply(e.target))) : null;
-  const watch = (root) => {
-    if (!ok || root.nodeType !== 1) return;
-    const els = root.matches(".glass, dialog") ? [root] : [];
-    els.push(...root.querySelectorAll(".glass, dialog"));
-    els.forEach((el) => { ro.observe(el); tracked.add(el); });
-  };
-  if (ok) {
-    new MutationObserver((ms) => ms.forEach((m) => {
-      m.addedNodes.forEach(watch);
-      m.removedNodes.forEach((n) => { if (n.nodeType === 1) { const gone = n.matches(".glass, dialog") ? [n] : []; gone.push(...n.querySelectorAll(".glass, dialog")); gone.forEach((e) => { ro.unobserve(e); tracked.delete(e); }); } });
-    })).observe(document.body, { childList: true, subtree: true });
-    watch(document.body);
-  }
-
-  /* Lumière au toucher : le verre gonfle et s'éclaire sous le doigt. */
-  let pressed = null;
-  document.addEventListener("pointerdown", (e) => {
-    const g = e.target.closest(".glass"); if (!g) return;
-    const b = g.getBoundingClientRect();
-    g.style.setProperty("--mx", `${e.clientX - b.left}px`); g.style.setProperty("--my", `${e.clientY - b.top}px`);
-    g.classList.add("pressing"); pressed = g;
-  }, { passive: true });
-  const release = () => { if (pressed) { pressed.classList.remove("pressing"); pressed = null; } };
-  document.addEventListener("pointerup", release, { passive: true });
-  document.addEventListener("pointercancel", release, { passive: true });
-
-  /* Reflets : la lumière suit l'inclinaison de la tablette (ou la souris sur ordinateur). */
-  let raf = 0, lx = 0, ly = -1;
-  const setLight = (x, y) => {
-    lx = x; ly = y; if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0; const s = document.documentElement.style;
-      s.setProperty("--lx", lx.toFixed(3)); s.setProperty("--ly", ly.toFixed(3));
-    });
-  };
-  window.addEventListener("deviceorientation", (e) => {
-    if (e.gamma == null) return;
-    setLight(Math.max(-1, Math.min(1, e.gamma / 35)), -1 + Math.max(-1, Math.min(1, (e.beta - 45) / 45)) * .6);
-  });
-  window.addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse") return;
-    setLight((e.clientX / innerWidth - .5) * 1.6, -1 + (e.clientY / innerHeight) * .5);
-  }, { passive: true });
-  /* Plus le verre est transparent, plus la réfraction se voit. */
-  const setGain = (g) => { gain = g; if (ok) tracked.forEach(apply); };
-  return { refract: ok, setGain };
-})();
+/* Boutons Retour et Accueil de l'APK Android */
+const closeDialogs = () => document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+window.addEventListener("prisme-back", closeDialogs);
+window.addEventListener("prisme-home", closeDialogs);
+window.addEventListener("prisme-resume", loadWeather);
 
 /* ---------- Démarrage ---------- */
-$("weather").innerHTML = `${ic("cloud")}${WEATHER.temp}° ${WEATHER.label}`;
-$("fc-weather").innerHTML = `${ic("cloud")}${WEATHER.temp}° ${WEATHER.label} <small>↑ ${WEATHER.hi}° ↓ ${WEATHER.lo}°</small>`;
-$("pl-art").innerHTML = ic("film");
-$("pl-prev").innerHTML = ic("prev"); $("pl-next").innerHTML = ic("next");
-$("btn-full").innerHTML = ic("full");
-$("btn-sleep").innerHTML = ic("sleep");
-$("printer-title").innerHTML = `${ic("printer")}Bambu Lab A1`;
-$("media-title").innerHTML = `${ic("film")}Lecture`;
-$("poster").innerHTML = ic("film");
-$("m-prev").innerHTML = ic("prev"); $("m-next").innerHTML = ic("next");
-if (NATIVE) $("btn-full").style.display = "none";   // l'APK est déjà en plein écran
-refreshInstalled(); renderDock();
-
-buildAnalog(); applyAmbStyle(); applyTheme(); applyLook(); renderRooms(); renderAll(); renderPrinter(); renderMedia(); tick(); resetIdle(); if (document.documentElement.classList.contains("cadre")) faceIdx = faceEls.indexOf($("face-photo"));
-goFace(faceIdx, false); nearNow();
-setInterval(tick, 1000);
-setInterval(() => {
-  if (!printer.paused && printer.progress < 100) { printer.progress = Math.min(100, printer.progress + 0.5); renderPrinter(); }
-  if (media.playing) { media.pos = Math.min(100, media.pos + 0.4); renderMedia(); }
-}, 5000);
+apply();
+tick(); setInterval(tick, 1000);
+loadWeather(); setInterval(loadWeather, 30 * 60000);
+if (!cfg.city) setTimeout(() => toast("Touche l'écran puis « Réglages » pour choisir la ville de la météo"), 1500);
 </script>
 </body>
 </html>

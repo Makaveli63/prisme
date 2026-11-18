@@ -126,7 +126,7 @@ def main():
     a = ap.parse_args()
     os.makedirs(PHOTOS, exist_ok=True)
     srv = ThreadingHTTPServer(("0.0.0.0", a.port), Gestion)
-    print(f"Home+ : cadre sur http://<ce-serveur>:{a.port}/?cadre  ·  envoi de photos sur http://<ce-serveur>:{a.port}/envoyer")
+    print(f"Home+ : cadre sur http://<ce-serveur>:{a.port}/  ·  envoi de photos sur http://<ce-serveur>:{a.port}/envoyer")
     if CODE:
         print("Code demandé pour envoyer ou supprimer des photos.")
     try:
