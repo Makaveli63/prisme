@@ -11,13 +11,15 @@ Cadre photo en verre liquide pour un écran posé dans le salon (Echo Show, viei
 ## Photos
 
 - **Depuis l'appareil** : toucher l'écran, « Ajouter des photos ». Elles restent sur l'appareil.
-- **Depuis l'iPhone, via le serveur de la maison** (pour un Echo Show, qui n'a pas de galerie) :
-  1. Sur le serveur Ubuntu : `git clone https://github.com/Makaveli63/prisme.git && cd prisme && python3 tools/serveur.py`
-  2. Sur l'écran (navigateur Silk de l'Echo Show) : ouvrir `http://<adresse-du-serveur>:8000/`
-  3. Sur l'iPhone (Safari) : ouvrir `http://<adresse-du-serveur>:8000/envoyer` et choisir des photos (Partager › « Sur l'écran d'accueil » pour en faire une icône). Elles sont réduites en JPEG avant l'envoi et apparaissent en 2 minutes ; on peut aussi les retirer depuis cette page.
-  4. Démarrage automatique : `tools/prisme-cadre.service` (instructions dedans). Option : `PRISME_CODE=1234` pour exiger un code à l'envoi.
+- **Depuis l'iPhone, via le serveur de la maison** (pour un Echo Show, qui n'a pas de galerie). Sur le serveur Ubuntu, une seule commande, qui installe Home+ et le lance à chaque démarrage (la relancer met à jour) :
 
-  Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison. Le dossier `photos/` n'est jamais envoyé sur GitHub.
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/Makaveli63/prisme/main/tools/installer.sh | bash
+  ```
+
+  Elle affiche deux adresses : celle à ouvrir sur l'Echo Show (navigateur Silk), et celle à ouvrir sur l'iPhone (Safari) pour envoyer des photos. L'adresse d'envoi est aussi rappelée dans les Réglages de Home+. Les photos sont réduites en JPEG avant l'envoi et apparaissent en 2 minutes.
+
+  Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison. Code facultatif : `PRISME_CODE=1234` dans le service. Les photos restent dans `~/homeplus/photos/` et ne sont jamais envoyées sur GitHub.
 
 ## Application Android
 
