@@ -1,15 +1,17 @@
-# Prisme — lecteur RSS
+# Prisme Home
 
-Webapp de lecture de flux RSS/Atom au style « Liquid Glass », accessible sur https://makaveli63.github.io/prisme/.
+Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Glass ». Publié sur https://makaveli63.github.io/prisme/.
 
-- Sources par catégories (Apple, Gaming, Tech…) avec icônes, compteurs, repli
-- Vues : Tous les articles · Articles du jour · À la une
-- Filtre flottant : Favoris · Non lus · Tout
-- Lecteur intégré (serif / sans), partage, ouverture dans Safari, article suivant / précédent
-- Ajout d'une source par simple adresse de site (détection automatique du flux)
-- Import / export OPML, thème clair / sombre / auto, tirer pour actualiser, glisser depuis le bord pour revenir
-- Données stockées localement (IndexedDB), installable sur l'écran d'accueil de l'iPhone
+- Horloge, salutation, météo et résumé de la maison
+- Scènes (Bienvenue, Cinéma, Bonne nuit, Départ) et pièces
+- Tuiles d'appareils : lumières, thermostat, volets, prises, TV, porte. Touche pour allumer ou éteindre, appui long pour régler
+- Carte imprimante Bambu Lab A1 et carte de lecture
+- Dock d'applications
+- Thème clair / sombre / auto, plein écran, mode veille avec grande horloge après 2 minutes sans toucher l'écran
+- Installable sur l'écran d'accueil (plein écran, paysage)
+
+C'est pour l'instant une **maquette** : les appareils, la météo, l'imprimante et la lecture sont des exemples définis en haut du script de `index.html` (`DEVICES`, `SCENES`, `APPS`, `printer`, `media`). Les applications du dock ne s'ouvrent pas depuis une page web.
 
 Lancer en local : `python3 -m http.server` puis ouvrir http://localhost:8000.
 
-Les flux sont téléchargés via des proxys CORS publics (allorigins, corsproxy.io, codetabs) quand le site ne permet pas l'accès direct.
+L'ancien lecteur RSS Prisme se trouve dans l'historique git, avant la branche `launcher`.
