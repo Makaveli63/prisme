@@ -149,6 +149,11 @@ input[type=range] { width: 100%; accent-color: var(--tint); height: 2rem; }
     <div class="row"><input type="text" id="city" placeholder="Ex. Clermont-Ferrand" autocomplete="off"><button class="btn primary" id="city-ok">Valider</button></div>
     <small id="city-state"></small>
   </div>
+  <div class="field" id="send-field" hidden>
+    <span class="lbl">Envoyer des photos depuis l'iPhone</span>
+    <small>Ouvre cette adresse dans Safari sur l'iPhone :</small>
+    <div style="font-weight:700;font-size:1.1rem;margin-top:.3rem;-webkit-user-select:all;user-select:all" id="send-url"></div>
+  </div>
   <div class="field">
     <span class="lbl">Position de l'heure</span>
     <div class="seg" id="pos"><button data-v="corner">En bas à gauche</button><button data-v="center">Au centre, en très grand</button></div>
@@ -492,6 +497,11 @@ $("set-btn").addEventListener("click", () => {
   $("city").value = cfg.city ? cfg.city.name : ""; $("city-state").textContent = cfg.city ? "" : "Choisis une ville pour afficher la météo.";
   try { $("settings").showModal(); } catch (e) { $("settings").setAttribute("open", ""); }
 });
+/* Page servie par tools/serveur.py : afficher l'adresse d'envoi pour l'iPhone. */
+fetch("photos/photos.json", { cache: "no-store" }).then((r) => {
+  if (!r.ok || !/json/.test(r.headers.get("content-type") || "")) return;
+  $("send-url").textContent = new URL("envoyer", location.href).href; $("send-field").hidden = false;
+}).catch(() => {});
 if (NATIVE) { $("android").hidden = false; $("android").addEventListener("click", () => NATIVE.openSettings("home")); }
 
 /* Toucher l'écran : les boutons apparaissent quelques secondes. */
