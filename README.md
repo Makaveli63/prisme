@@ -13,6 +13,13 @@ Launcher pour tablette inspiré de la vue Maison d'Apple, en style « Liquid Gla
 
 C'est pour l'instant une **maquette** : les appareils, la météo, l'imprimante et la lecture sont des exemples définis en haut du script de `index.html` (`DEVICES`, `SCENES`, `APPS`, `printer`, `media`). Les applications du dock ne s'ouvrent pas depuis une page web : il faut l'application Android.
 
+## Cadre photo (Echo Show, vieille tablette…)
+
+Ouvrir la page avec `?cadre` à la fin de l'adresse : heure en grand par-dessus un diaporama, sans applications.
+
+- Photos depuis l'appareil : toucher l'écran puis « Ajouter des photos » (elles restent sur l'appareil).
+- Photos depuis un serveur de la maison (pratique pour un Echo Show, qui n'a pas de galerie) : sur le serveur, cloner ce dépôt, mettre les photos dans un dossier `photos/` à côté de `index.html`, lancer `python3 -m http.server 8000` dans le dépôt, puis ouvrir `http://<adresse-du-serveur>:8000/?cadre` sur l'Echo Show (navigateur Silk).
+
 ## Application Android
 
 Le dossier `android/` contient un launcher Android : la même page dans une WebView plein écran, avec un dock qui lance les vraies applications.
