@@ -1,0 +1,57 @@
+plugins {
+    id "com.android.application"
+}
+
+// La page du launcher n'existe qu'une fois, à la racine du dépôt : on la copie dans les assets à chaque build.
+def webDir = layout.buildDirectory.dir("generated/web").get().asFile
+def copyWeb = tasks.register("copyWeb", Sync) {
+    from(rootProject.file("..")) {
+        include "index.html", "icon.svg", "icon-180.png", "icon-512.png", "manifest.webmanifest"
+    }
+    into webDir
+}
+tasks.named("preBuild") { dependsOn copyWeb }
+
+android {
+    namespace "io.github.makaveli63.prisme"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "io.github.makaveli63.prisme"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "0.1"
+    }
+
+    signingConfigs {
+        // Clé de debug fixe (mot de passe public « android ») : chaque nouvel APK s'installe par-dessus le précédent.
+        debug {
+            storeFile file("../debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        debug { signingConfig signingConfigs.debug }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    sourceSets {
+        main { assets.srcDir webDir }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.webkit:webkit:1.12.1"
+}
