@@ -1,6 +1,6 @@
 {
-  "name": "Prisme Home",
-  "short_name": "Prisme",
+  "name": "Home+",
+  "short_name": "Home+",
   "description": "Launcher pour tablette inspiré de la vue Maison d'Apple, en style Liquid Glass.",
   "start_url": "./",
   "scope": "./",

@@ -34,7 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
- * Launcher Prisme Home : une WebView plein écran qui affiche index.html (copié dans les assets au build)
+ * Launcher Home+ : une WebView plein écran qui affiche index.html (copié dans les assets au build)
  * et expose au JavaScript l'objet « PrismeAndroid » pour lister et lancer les applications installées.
  */
 public class MainActivity extends Activity {

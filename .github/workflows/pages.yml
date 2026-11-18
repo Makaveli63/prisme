@@ -1,4 +1,4 @@
-name: Publier Prisme Home
+name: Publier Home+
 
 on:
   push:

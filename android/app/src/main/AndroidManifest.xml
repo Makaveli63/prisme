@@ -12,7 +12,7 @@
     </queries>
 
     <application
-        android:label="Prisme Home"
+        android:label="Home+"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Prisme"
