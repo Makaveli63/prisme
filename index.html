@@ -884,7 +884,7 @@ window.addEventListener("resize", () => goFace(faceIdx, false));
    Deux sources, cumulées :
    - les photos ajoutées depuis l'appareil, réduites (2000 px max) et gardées dans IndexedDB, sur cet appareil seulement ;
    - un dossier « photos/ » servi à côté de la page (liste de fichiers du serveur, ou photos/photos.json = tableau d'adresses),
-     ou l'adresse donnée par ?photos=… ; relu toutes les 30 min. Utile sur un Echo Show, qui n'a pas de galerie.
+     ou l'adresse donnée par ?photos=… ; relu toutes les 2 min. Utile sur un Echo Show, qui n'a pas de galerie.
    Rien n'est envoyé ni mis dans le dépôt (photos/ est ignoré par git). Sans photo, des fonds dégradés servent d'exemple. */
 const Photos = (() => {
   const SAMPLES = [
@@ -932,10 +932,14 @@ const Photos = (() => {
     }
     return [];
   }
+  let sig = "";
   async function load() {
+    const blobs = await all(), far = await remote();
+    const nsig = blobs.length + "|" + far.join("|");
+    if (nsig === sig) return;                 // rien de nouveau : le diaporama continue
+    sig = nsig;
     urls.forEach((u) => u.startsWith("blob:") && URL.revokeObjectURL(u));
-    const blobs = await all();
-    urls = blobs.map((b) => URL.createObjectURL(b)).concat(await remote());
+    urls = blobs.map((b) => URL.createObjectURL(b)).concat(far);
     for (let k = urls.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [urls[k], urls[j]] = [urls[j], urls[k]]; }
     $("ph-empty").hidden = urls.length > 0;
     i = -1; next();
@@ -967,7 +971,7 @@ const Photos = (() => {
     load();
   }
   open().then((d) => { db = d; load(); });
-  setInterval(load, 30 * 60000);
+  setInterval(load, 2 * 60000);   // nouvelles photos envoyées depuis le téléphone
   return { add, clear, next };
 })();
 $("ph-file").addEventListener("change", (e) => { Photos.add([...e.target.files]); e.target.value = ""; });

@@ -18,7 +18,12 @@ C'est pour l'instant une **maquette** : les appareils, la météo, l'imprimante 
 Ouvrir la page avec `?cadre` à la fin de l'adresse : heure en grand par-dessus un diaporama, sans applications.
 
 - Photos depuis l'appareil : toucher l'écran puis « Ajouter des photos » (elles restent sur l'appareil).
-- Photos depuis un serveur de la maison (pratique pour un Echo Show, qui n'a pas de galerie) : sur le serveur, cloner ce dépôt, mettre les photos dans un dossier `photos/` à côté de `index.html`, lancer `python3 -m http.server 8000` dans le dépôt, puis ouvrir `http://<adresse-du-serveur>:8000/?cadre` sur l'Echo Show (navigateur Silk).
+- Photos depuis l'iPhone, via le serveur de la maison (pratique pour un Echo Show, qui n'a pas de galerie) :
+  1. Sur le serveur Ubuntu : `git clone https://github.com/Makaveli63/prisme.git && cd prisme && python3 tools/serveur.py`
+  2. Sur l'Echo Show (navigateur Silk) : ouvrir `http://<adresse-du-serveur>:8000/?cadre`
+  3. Sur l'iPhone (Safari) : ouvrir `http://<adresse-du-serveur>:8000/envoyer`, choisir des photos. Partager › « Sur l'écran d'accueil » pour en faire une icône. Les photos sont réduites en JPEG avant l'envoi et apparaissent sur le cadre en 2 minutes ; on peut aussi les retirer depuis cette page.
+  4. Démarrage automatique : `tools/prisme-cadre.service` (instructions dedans). Option : `PRISME_CODE=1234` pour exiger un code à l'envoi.
+  Le serveur n'a pas d'HTTPS : à garder sur le réseau de la maison.
 
 ## Application Android
 
